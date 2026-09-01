@@ -164,3 +164,39 @@ def test_crawler_error_resilience():
     assert s == 0
     assert f == 1
     assert "BrokenAPI Failed" in log
+
+def test_smart_merge_sold_out_propagation():
+    """When crawler marks a performance as sold out, smart merge must propagate isSoldOut to KOPIS doc"""
+    mock_db = mongomock.MongoClient().uart
+    crawler = MockBaseCrawler(mock_db)
+
+    # 1. KOPIS doc initially saved as '공연중'
+    kopis_data = {
+        "id": "PF_SOLDOUT",
+        "title": "양파 콘서트",
+        "normTitle": "양파콘서트",
+        "startDate": "2026-09-11",
+        "endDate": "2026-09-11",
+        "venue": "중구문화의전당",
+        "state": "공연중",
+        "source": "KOPIS"
+    }
+    crawler.save_performance(kopis_data)
+
+    # 2. Junggu Crawler detects it's sold out
+    crawled_data = {
+        "title": "양파X전진희 콘서트",
+        "normTitle": "양파콘서트",
+        "startDate": "2026-09-11",
+        "endDate": "2026-09-11",
+        "venue": "중구문화의전당",
+        "state": "매진",
+        "isSoldOut": True,
+        "source": "CRAWLED"
+    }
+    crawler.save_performance(crawled_data)
+
+    merged = mock_db.performances.find_one({"startDate": "2026-09-11"})
+    assert merged["state"] == "매진"
+    assert merged["isSoldOut"] is True
+

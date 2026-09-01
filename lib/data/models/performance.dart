@@ -12,7 +12,9 @@ class Performance {
   final String district;
 
   bool get isSoldOut =>
-      state.contains('매진') || state.toLowerCase().contains('sold out');
+      state.contains('매진') ||
+      state.toLowerCase().contains('sold out') ||
+      state == '공연완료';
 
   Performance({
     required this.id,
@@ -81,7 +83,9 @@ class PerformanceDetail {
   final List<String> detailImages;
 
   bool get isSoldOut =>
-      state.contains('매진') || state.toLowerCase().contains('sold out');
+      state.contains('매진') ||
+      state.toLowerCase().contains('sold out') ||
+      state == '공연완료';
 
   PerformanceDetail({
     required this.id,
