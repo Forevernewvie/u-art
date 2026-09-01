@@ -23,12 +23,12 @@ U-Art는 모바일 클라이언트와 무중단 백엔드 클러스터로 구성
 
 ```mermaid
 graph TD
-    Flutter["📱 Flutter App (Client)"] -->|"HTTPS Request"| CF["☁️ Cloudflare Tunnel"]
-    CF -->|"Local Forwarding"| Node["👨‍🍳 Node.js API (PM2)"]
-    Node -->|"Query"| DB[("🧊 MongoDB (Docker)")]
-    Crawler["🛒 Python Crawler (PM2)"] -->|"6-hour interval"| DB
-    Crawler -.->|"Fetch"| KOPIS["KOPIS API"]
-    Crawler -.->|"Crawl"| LocalWeb["울산 관내 예매처"]
+    Flutter[📱 Flutter App] -->|HTTPS Request| CF[☁️ Cloudflare Tunnel]
+    CF -->|Local Forwarding| Node[👨‍🍳 Node.js API]
+    Node -->|Query DB| DB[(🧊 MongoDB Docker)]
+    Crawler[🛒 Python Crawler] -->|6-hour interval| DB
+    Crawler -.->|Fetch API| KOPIS[KOPIS OpenAPI]
+    Crawler -.->|Crawl Web| LocalWeb[울산 관내 예매처]
 ```
 
 ---
