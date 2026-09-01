@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:u_art/data/models/performance.dart';
 import 'package:u_art/data/repositories/performance_repository.dart';
+import 'package:u_art/data/services/kopis_service.dart';
 
 part 'search_view_model.g.dart';
 
@@ -29,6 +30,7 @@ class SearchViewModel extends _$SearchViewModel {
 
   Future<List<Performance>> _loadAllUlsanPerformances() async {
     final service = ref.read(uartApiServiceProvider);
+    final kopisService = KopisService('534331c08630453bbd1df50692635746');
     final now = DateTime.now();
     final endDate = calculateEndDate(now);
 
@@ -36,13 +38,25 @@ class SearchViewModel extends _$SearchViewModel {
     final stdateStr = dateFormat.format(now);
     final eddateStr = dateFormat.format(endDate);
 
-    final list = await service.getPerformances(
-      stdate: stdateStr,
-      eddate: eddateStr,
-    );
-
-    list.sort((a, b) => a.startDate.compareTo(b.startDate));
-    return list;
+    try {
+      final list = await service
+          .getPerformances(stdate: stdateStr, eddate: eddateStr)
+          .timeout(const Duration(milliseconds: 1500));
+      if (list.isNotEmpty) {
+        list.sort((a, b) => a.startDate.compareTo(b.startDate));
+        return list;
+      }
+      throw Exception('Empty backend response');
+    } catch (_) {
+      final kopisFormat = DateFormat('yyyyMMdd');
+      final list = await kopisService.getAllPerformancesByRegion(
+        stdate: kopisFormat.format(now),
+        eddate: kopisFormat.format(endDate),
+        signgucode: '31',
+      );
+      list.sort((a, b) => a.startDate.compareTo(b.startDate));
+      return list;
+    }
   }
 
   Future<void> search(String query, String genre) async {
