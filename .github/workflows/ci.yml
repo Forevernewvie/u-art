@@ -1,4 +1,4 @@
-name: Flutter CI/CD
+name: U-Art Full-Stack CI/CD
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
-  test:
-    name: Lint & Test
+  flutter_test:
+    name: Flutter Lint & Tests
     runs-on: ubuntu-latest
     
     steps:
@@ -35,12 +35,48 @@ jobs:
       - name: Analyze Code
         run: flutter analyze
         
-      - name: Run Tests
+      - name: Run Flutter Tests
         run: flutter test --coverage
+
+  backend_test:
+    name: Backend API & Crawler Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python Test Dependencies
+        run: |
+          pip install -r backend/requirements-test.txt
+
+      - name: Run Python Crawler & Smart Merge Tests
+        run: |
+          python -m pytest backend/tests/
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node API Dependencies
+        run: |
+          cd backend/api
+          npm ci
+
+      - name: Run Node.js API Tests
+        run: |
+          cd backend/api
+          npm test
 
   build_android:
     name: Build Android APK
-    needs: test
+    needs: [flutter_test, backend_test]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     

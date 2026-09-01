@@ -4,11 +4,15 @@
   "description": "API for U-Art performances",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test server.test.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "mongoose": "^7.5.0",
-    "cors": "^2.8.5"
+    "mongoose": "^7.5.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.2.2"
   }
 }
