@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../view_models/home_view_model.dart';
+import 'widgets/kopis_disclaimer.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -171,6 +172,9 @@ class HomeScreen extends ConsumerWidget {
                   },
                   childCount: listItems.length,
                 ),
+              ),
+              const SliverToBoxAdapter(
+                child: KopisDisclaimer(),
               ),
             ],
           );
