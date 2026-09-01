@@ -140,13 +140,34 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         ),
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            imageUrl: perf.posterUrl,
-                            width: 60,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
+                          child: Stack(
+                            children: [
+                              CachedNetworkImage(
+                                imageUrl: perf.posterUrl,
+                                width: 60,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error),
+                              ),
+                              if (perf.isSoldOut)
+                                Positioned.fill(
+                                  child: Container(
+                                    width: 60,
+                                    height: 80,
+                                    color: Colors.black.withValues(alpha: 0.6),
+                                    alignment: Alignment.center,
+                                    child: const Text(
+                                      '매진',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                         title: Text(

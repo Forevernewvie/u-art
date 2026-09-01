@@ -209,7 +209,7 @@ class DetailScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              if (hasBooking)
+              if (hasBooking || detail.isSoldOut)
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -227,11 +227,19 @@ class DetailScreen extends ConsumerWidget {
                       ),
                     ),
                     child: ElevatedButton.icon(
-                      onPressed: () =>
-                          _handleBooking(context, detail.bookingLinks),
-                      icon: const Icon(Icons.confirmation_number, size: 22),
+                      onPressed: detail.isSoldOut
+                          ? null
+                          : () => _handleBooking(context, detail.bookingLinks),
+                      icon: Icon(
+                        detail.isSoldOut
+                            ? Icons.block
+                            : Icons.confirmation_number,
+                        size: 22,
+                      ),
                       label: Text(
-                        detail.bookingLinks.length > 1
+                        detail.isSoldOut
+                            ? '매진 (Sold Out)'
+                            : detail.bookingLinks.length > 1
                             ? '예매처 바로가기 (${detail.bookingLinks.length}곳)'
                             : '지금 예매하기 (${detail.bookingLinks.first.name})',
                         style: const TextStyle(
@@ -242,6 +250,8 @@ class DetailScreen extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.black,
+                        disabledBackgroundColor: Colors.grey.shade900,
+                        disabledForegroundColor: Colors.white54,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         elevation: 6,
                         shape: RoundedRectangleBorder(
