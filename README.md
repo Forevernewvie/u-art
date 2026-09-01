@@ -35,8 +35,8 @@ flowchart TD
     CF -- Forwarding --> API
     API -- Query --> DB
     Crawler -- Update --> DB
-    Crawler -. OpenAPI .-> KOPIS
-    Crawler -. Crawling .-> LocalSite
+    Crawler -.->|OpenAPI| KOPIS
+    Crawler -.->|Crawling| LocalSite
 ```
 
 ---
