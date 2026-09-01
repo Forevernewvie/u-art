@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:6-jammy
+    container_name: uart_mongo_prod
+    restart: always
+    volumes:
+      - db_data_prod:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-examplepassword}
+    # No ports exposed to the host for security! Only internal docker network access.
+
+  api:
+    build: ../api
+    container_name: uart_api_prod
+    restart: always
+    environment:
+      - MONGO_URI=mongodb://${MONGO_USER:-root}:${MONGO_PASS:-examplepassword}@db:27017/uart?authSource=admin
+      - PORT=3000
+    depends_on:
+      - db
+
+  crawler:
+    build: ../crawler
+    container_name: uart_crawler_prod
+    restart: always
+    environment:
+      - MONGO_URI=mongodb://${MONGO_USER:-root}:${MONGO_PASS:-examplepassword}@db:27017/uart?authSource=admin
+      - KOPIS_API_KEY=${KOPIS_API_KEY}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+    depends_on:
+      - db
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: uart_caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  db_data_prod:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,9 @@
+# For now, bind to port 80 (IP address)
+:80 {
+    reverse_proxy api:3000
+}
+
+# When you get a domain, uncomment below and comment out :80 above
+# yourdomain.com {
+#     reverse_proxy api:3000
+# }

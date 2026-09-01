@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:6-jammy
+    container_name: uart_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - db_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: examplepassword
+
+  api:
+    build: ./api
+    container_name: uart_api
+    restart: unless-stopped
+    ports:
+      - "8000:3000"
+    environment:
+      - MONGO_URI=mongodb://root:examplepassword@db:27017/uart?authSource=admin
+      - PORT=3000
+    depends_on:
+      - db
+
+  crawler:
+    build: ./crawler
+    container_name: uart_crawler
+    restart: unless-stopped
+    environment:
+      - MONGO_URI=mongodb://root:examplepassword@db:27017/uart?authSource=admin
+      - KOPIS_API_KEY=534331c08630453bbd1df50692635746
+    depends_on:
+      - db
+
+  tunnel:
+    image: node:18-alpine
+    container_name: uart_tunnel
+    restart: unless-stopped
+    command: sh -c "npx -y localtunnel --port 3000 --local-host api --subdomain uart-ulsan"
+    depends_on:
+      - api
+
+volumes:
+  db_data:
