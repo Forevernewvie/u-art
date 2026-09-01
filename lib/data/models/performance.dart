@@ -11,6 +11,9 @@ class Performance {
   final String state;
   final String district;
 
+  bool get isSoldOut =>
+      state.contains('매진') || state.toLowerCase().contains('sold out');
+
   Performance({
     required this.id,
     required this.title,
@@ -76,6 +79,9 @@ class PerformanceDetail {
   final String district;
   final List<BookingLink> bookingLinks;
   final List<String> detailImages;
+
+  bool get isSoldOut =>
+      state.contains('매진') || state.toLowerCase().contains('sold out');
 
   PerformanceDetail({
     required this.id,

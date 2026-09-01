@@ -67,6 +67,37 @@ class HomeScreen extends ConsumerWidget {
                                   errorWidget: (context, url, error) =>
                                       const Icon(Icons.error),
                                 ),
+                                if (perf.isSoldOut)
+                                  Positioned.fill(
+                                    child: Container(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.6,
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red.withValues(
+                                            alpha: 0.9,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'SOLD OUT',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 Positioned(
                                   bottom: 0,
                                   left: 0,
@@ -157,13 +188,34 @@ class HomeScreen extends ConsumerWidget {
                       tag: 'list_poster_${perf.id}',
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: CachedNetworkImage(
-                          imageUrl: perf.posterUrl,
-                          width: 60,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorWidget: (context, url, error) =>
-                              const Icon(Icons.error),
+                        child: Stack(
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: perf.posterUrl,
+                              width: 60,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.error),
+                            ),
+                            if (perf.isSoldOut)
+                              Positioned.fill(
+                                child: Container(
+                                  width: 60,
+                                  height: 80,
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    '매진',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
