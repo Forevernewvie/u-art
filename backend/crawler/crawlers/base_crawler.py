@@ -46,22 +46,34 @@ class BaseCrawler(abc.ABC):
                     merged_links.append(nl)
                     existing_urls.add(nl["url"])
             
+            is_sold_out = perf.get("isSoldOut", False) or perf.get("state") == "매진" or target_doc.get("isSoldOut", False) or target_doc.get("state") == "매진"
+
             if new_source == "KOPIS" and existing_source == "CRAWLED":
-                # KOPIS overwrites CRAWLED, but keep combined bookingLinks
+                # KOPIS overwrites CRAWLED, but keep combined bookingLinks and sold out status
                 perf["bookingLinks"] = merged_links
+                if is_sold_out:
+                    perf["state"] = "매진"
+                    perf["isSoldOut"] = True
                 self.performances.replace_one({"_id": target_doc["_id"]}, perf)
                 self.updated_count += 1
                 
             elif new_source == "CRAWLED" and existing_source == "KOPIS":
-                # CRAWLED adds booking links to KOPIS, does NOT overwrite KOPIS baseline
+                # CRAWLED adds booking links and sold out status to KOPIS baseline
+                update_fields = {"bookingLinks": merged_links, "updatedAt": datetime.now()}
+                if is_sold_out:
+                    update_fields["state"] = "매진"
+                    update_fields["isSoldOut"] = True
                 self.performances.update_one(
                     {"_id": target_doc["_id"]},
-                    {"$set": {"bookingLinks": merged_links, "updatedAt": datetime.now()}}
+                    {"$set": update_fields}
                 )
                 self.updated_count += 1
             else:
                 # Same source overwriting
                 perf["bookingLinks"] = merged_links
+                if is_sold_out:
+                    perf["state"] = "매진"
+                    perf["isSoldOut"] = True
                 self.performances.replace_one({"_id": target_doc["_id"]}, perf)
                 self.updated_count += 1
         else:
