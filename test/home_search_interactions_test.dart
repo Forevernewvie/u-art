@@ -12,15 +12,20 @@ import 'package:carousel_slider/carousel_slider.dart';
 void main() {
   testWidgets('HomeScreen interactions and error states', (tester) async {
     final performance = Performance(
-      id: '1', title: 'T', startDate: 'S', endDate: 'E', venue: 'V', posterUrl: 'invalid_url', genre: 'G', state: 'S'
-    , district: '전체');
+      id: '1',
+      title: 'T',
+      startDate: 'S',
+      endDate: 'E',
+      venue: 'V',
+      posterUrl: 'invalid_url',
+      genre: 'G',
+      state: 'S',
+      district: '전체',
+    );
 
     final router = GoRouter(
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const HomeScreen(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
         GoRoute(
           path: '/search',
           builder: (context, state) => const Text('Search Page'),
@@ -28,55 +33,60 @@ void main() {
         GoRoute(
           path: '/detail/:id',
           name: 'home_detail',
-          builder: (context, state) => Text('Detail ${state.pathParameters['id']}'),
+          builder: (context, state) =>
+              Text('Detail ${state.pathParameters['id']}'),
         ),
-      ]
+      ],
     );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          homeViewModelProvider.overrideWith(() => MockHomeViewModel([performance])),
+          homeViewModelProvider.overrideWith(
+            () => MockHomeViewModel([performance]),
+          ),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
     );
 
     await tester.pumpAndSettle();
-    
+
     // tap search icon in app bar
     await tester.tap(find.byIcon(Icons.search));
     await tester.pumpAndSettle();
     expect(find.text('Search Page'), findsOneWidget);
-    
+
     // Go back to home
     router.go('/');
     await tester.pumpAndSettle();
 
     // tap carousel item
-    final carouselGesture = find.descendant(
-      of: find.byType(CarouselSlider),
-      matching: find.byType(GestureDetector),
-    ).first;
+    final carouselGesture = find
+        .descendant(
+          of: find.byType(CarouselSlider),
+          matching: find.byType(GestureDetector),
+        )
+        .first;
     tester.widget<GestureDetector>(carouselGesture).onTap!();
     await tester.pumpAndSettle();
-    
+
     // Should navigate to detail
     expect(find.text('Detail 1'), findsOneWidget);
-    
+
     // Go back
     router.go('/');
     await tester.pumpAndSettle();
-    
+
     // tap list item
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -500));
     await tester.pumpAndSettle();
-    
+
     await tester.tap(find.byType(ListTile).first);
     await tester.pumpAndSettle();
     expect(find.text('Detail 1'), findsOneWidget);
   });
-  
+
   testWidgets('HomeScreen loading and error', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -89,52 +99,62 @@ void main() {
 
     await tester.pump();
     // loading
-    
+
     await tester.pumpAndSettle();
     expect(find.textContaining('오류가 발생했습니다.'), findsOneWidget);
   });
-  
+
   testWidgets('SearchScreen interactions and error states', (tester) async {
     final performance = Performance(
-      id: '1', title: 'T', startDate: 'S', endDate: 'E', venue: 'V', posterUrl: 'invalid_url', genre: 'G', state: 'S'
-    , district: '전체');
+      id: '1',
+      title: 'T',
+      startDate: 'S',
+      endDate: 'E',
+      venue: 'V',
+      posterUrl: 'invalid_url',
+      genre: 'G',
+      state: 'S',
+      district: '전체',
+    );
 
     final router = GoRouter(
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const SearchScreen(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const SearchScreen()),
         GoRoute(
           path: '/detail/:id',
           name: 'search_detail',
-          builder: (context, state) => Text('Detail ${state.pathParameters['id']}'),
+          builder: (context, state) =>
+              Text('Detail ${state.pathParameters['id']}'),
         ),
-      ]
+      ],
     );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          searchViewModelProvider.overrideWith(() => MockSearchViewModel([performance])),
+          searchViewModelProvider.overrideWith(
+            () => MockSearchViewModel([performance]),
+          ),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
     );
 
     await tester.pumpAndSettle();
-    
+
     // tap list item
     await tester.tap(find.byType(ListTile).first);
     await tester.pumpAndSettle();
     expect(find.text('Detail 1'), findsOneWidget);
   });
-  
+
   testWidgets('SearchScreen error state', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          searchViewModelProvider.overrideWith(() => MockSearchViewModelError()),
+          searchViewModelProvider.overrideWith(
+            () => MockSearchViewModelError(),
+          ),
         ],
         child: const MaterialApp(home: SearchScreen()),
       ),
@@ -143,28 +163,38 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
     expect(find.textContaining('네트워크 오류가 발생했습니다.'), findsOneWidget);
-    
+
     // Tap retry button
     await tester.tap(find.text('재시도'));
     await tester.pumpAndSettle();
   });
-  
+
   testWidgets('SearchScreen refresh indicator', (tester) async {
     final performance = Performance(
-      id: '1', title: 'T', startDate: 'S', endDate: 'E', venue: 'V', posterUrl: 'invalid_url', genre: 'G', state: 'S'
-    , district: '전체');
-    
+      id: '1',
+      title: 'T',
+      startDate: 'S',
+      endDate: 'E',
+      venue: 'V',
+      posterUrl: 'invalid_url',
+      genre: 'G',
+      state: 'S',
+      district: '전체',
+    );
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          searchViewModelProvider.overrideWith(() => MockSearchViewModel([performance])),
+          searchViewModelProvider.overrideWith(
+            () => MockSearchViewModel([performance]),
+          ),
         ],
         child: const MaterialApp(home: SearchScreen()),
       ),
     );
 
     await tester.pumpAndSettle();
-    
+
     await tester.drag(find.byType(ListView), const Offset(0, 300));
     await tester.pumpAndSettle();
   });
@@ -191,6 +221,7 @@ class MockSearchViewModel extends SearchViewModel {
   Future<void> search(String query, String genre) async {
     state = AsyncData(_data);
   }
+
   @override
   Future<void> refresh() async {
     state = AsyncData(_data);

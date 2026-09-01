@@ -21,7 +21,7 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => context.go('/search'),
-          )
+          ),
         ],
       ),
       body: state.when(
@@ -30,7 +30,9 @@ class HomeScreen extends ConsumerWidget {
             return const Center(child: Text('예정된 공연이 없습니다.'));
           }
 
-          final carouselItems = performances.take(5).toList(); // Top 5 for carousel
+          final carouselItems = performances
+              .take(5)
+              .toList(); // Top 5 for carousel
           final listItems = performances; // All 14 days
 
           return CustomScrollView(
@@ -48,7 +50,10 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     items: carouselItems.map((perf) {
                       return GestureDetector(
-                        onTap: () => context.pushNamed('home_detail', pathParameters: {'id': perf.id}),
+                        onTap: () => context.pushNamed(
+                          'home_detail',
+                          pathParameters: {'id': perf.id},
+                        ),
                         child: Hero(
                           tag: 'poster_${perf.id}',
                           child: ClipRRect(
@@ -59,7 +64,8 @@ class HomeScreen extends ConsumerWidget {
                                 CachedNetworkImage(
                                   imageUrl: perf.posterUrl,
                                   fit: BoxFit.cover,
-                                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
                                 ),
                                 Positioned(
                                   bottom: 0,
@@ -67,12 +73,18 @@ class HomeScreen extends ConsumerWidget {
                                   right: 0,
                                   child: ClipRect(
                                     child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                      filter: ImageFilter.blur(
+                                        sigmaX: 10,
+                                        sigmaY: 10,
+                                      ),
                                       child: Container(
                                         padding: const EdgeInsets.all(16),
-                                        color: Colors.black.withValues(alpha: 0.4),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.4,
+                                        ),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               perf.genre,
@@ -134,48 +146,59 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
               SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final perf = listItems[index];
-                    return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                      leading: Hero(
-                        tag: 'list_poster_${perf.id}',
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: CachedNetworkImage(
-                            imageUrl: perf.posterUrl,
-                            width: 60,
-                            height: 80,
-                            fit: BoxFit.cover,
-                            errorWidget: (context, url, error) => const Icon(Icons.error),
-                          ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final perf = listItems[index];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    leading: Hero(
+                      tag: 'list_poster_${perf.id}',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: CachedNetworkImage(
+                          imageUrl: perf.posterUrl,
+                          width: 60,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
                         ),
                       ),
-                      title: Text(
-                        perf.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Text(perf.venue),
-                          Text('${perf.startDate} ~ ${perf.endDate}', style: const TextStyle(fontSize: 12, color: Colors.white54)),
-                        ],
-                      ),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.white54),
-                      onTap: () => context.pushNamed('home_detail', pathParameters: {'id': perf.id}),
-                    );
-                  },
-                  childCount: listItems.length,
-                ),
+                    ),
+                    title: Text(
+                      perf.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(perf.venue),
+                        Text(
+                          '${perf.startDate} ~ ${perf.endDate}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white54,
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right,
+                      color: Colors.white54,
+                    ),
+                    onTap: () => context.pushNamed(
+                      'home_detail',
+                      pathParameters: {'id': perf.id},
+                    ),
+                  );
+                }, childCount: listItems.length),
               ),
-              const SliverToBoxAdapter(
-                child: KopisDisclaimer(),
-              ),
+              const SliverToBoxAdapter(child: KopisDisclaimer()),
             ],
           );
         },

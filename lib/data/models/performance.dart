@@ -100,10 +100,12 @@ class PerformanceDetail {
     List<BookingLink> parsedLinks = [];
     if (json['bookingLinks'] != null) {
       for (var link in json['bookingLinks']) {
-        parsedLinks.add(BookingLink(name: link['name'] ?? '', url: link['url'] ?? ''));
+        parsedLinks.add(
+          BookingLink(name: link['name'] ?? '', url: link['url'] ?? ''),
+        );
       }
     }
-    
+
     // Convert string fields safely
     return PerformanceDetail(
       id: json['id'] ?? json['kopisId'] ?? '',
@@ -121,7 +123,11 @@ class PerformanceDetail {
       state: json['state'] ?? '공연예정',
       district: json['district'] ?? '전체',
       bookingLinks: parsedLinks,
-      detailImages: (json['detailImages'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      detailImages:
+          (json['detailImages'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 
@@ -131,32 +137,42 @@ class PerformanceDetail {
 
     // Parse relates / booking links
     final List<BookingLink> parsedLinks = [];
-    final relatesElements = node.findElements('relates').expand((r) => r.findElements('relate'));
+    final relatesElements = node
+        .findElements('relates')
+        .expand((r) => r.findElements('relate'));
     for (final r in relatesElements) {
-      final name = r.findElements('relatenm').firstOrNull?.innerText.trim() ?? '';
-      final url = r.findElements('relateurl').firstOrNull?.innerText.trim() ?? '';
+      final name =
+          r.findElements('relatenm').firstOrNull?.innerText.trim() ?? '';
+      final url =
+          r.findElements('relateurl').firstOrNull?.innerText.trim() ?? '';
       if (url.isNotEmpty && url.startsWith('http')) {
-        parsedLinks.add(BookingLink(name: name.isNotEmpty ? name : '예매처 바로가기', url: url));
+        parsedLinks.add(
+          BookingLink(name: name.isNotEmpty ? name : '예매처 바로가기', url: url),
+        );
       }
     }
 
     // Fallback booking link if none provided but in booking state
     if (parsedLinks.isEmpty) {
       if (venue.contains('울산문화예술회관')) {
-        parsedLinks.add(BookingLink(
-          name: '울산문화예술회관 공식 예매',
-          url: 'https://ucac.ulsan.go.kr',
-        ));
+        parsedLinks.add(
+          BookingLink(name: '울산문화예술회관 공식 예매', url: 'https://ucac.ulsan.go.kr'),
+        );
       } else if (venue.contains('중구문화의전당')) {
-        parsedLinks.add(BookingLink(
-          name: '중구문화의전당 공식 예매',
-          url: 'https://artscenter.junggu.ulsan.kr',
-        ));
+        parsedLinks.add(
+          BookingLink(
+            name: '중구문화의전당 공식 예매',
+            url: 'https://artscenter.junggu.ulsan.kr',
+          ),
+        );
       } else {
-        parsedLinks.add(BookingLink(
-          name: '인터파크 티켓 검색',
-          url: 'https://tickets.interpark.com/search?keyword=${Uri.encodeComponent(title)}',
-        ));
+        parsedLinks.add(
+          BookingLink(
+            name: '인터파크 티켓 검색',
+            url:
+                'https://tickets.interpark.com/search?keyword=${Uri.encodeComponent(title)}',
+          ),
+        );
       }
     }
 
@@ -168,7 +184,8 @@ class PerformanceDetail {
       venue: venue,
       cast: node.findElements('prfcast').firstOrNull?.innerText ?? '',
       runtime: node.findElements('prfruntime').firstOrNull?.innerText ?? '',
-      timeGuidance: node.findElements('dtguidance').firstOrNull?.innerText ?? '',
+      timeGuidance:
+          node.findElements('dtguidance').firstOrNull?.innerText ?? '',
       ageLimit: node.findElements('prfage').firstOrNull?.innerText ?? '',
       price: node.findElements('pcseguidance').firstOrNull?.innerText ?? '',
       posterUrl: node.findElements('poster').firstOrNull?.innerText ?? '',
@@ -176,7 +193,12 @@ class PerformanceDetail {
       state: node.findElements('prfstate').firstOrNull?.innerText ?? '',
       district: '전체',
       bookingLinks: parsedLinks,
-      detailImages: node.findElements('styurls').expand((s) => s.findElements('styurl')).map((e) => e.innerText.trim()).where((url) => url.isNotEmpty).toList(),
+      detailImages: node
+          .findElements('styurls')
+          .expand((s) => s.findElements('styurl'))
+          .map((e) => e.innerText.trim())
+          .where((url) => url.isNotEmpty)
+          .toList(),
     );
   }
 }

@@ -9,7 +9,9 @@ void main() {
     late BookmarkRepository repository;
 
     setUp(() async {
-      SharedPreferences.setMockInitialValues({'bookmarked_performances': ['1', '2']});
+      SharedPreferences.setMockInitialValues({
+        'bookmarked_performances': ['1', '2'],
+      });
       prefs = await SharedPreferences.getInstance();
       repository = BookmarkRepository(prefs);
     });
@@ -40,10 +42,7 @@ void main() {
 
     test('bookmarkRepository provider throws unimplemented', () {
       final container = ProviderContainer();
-      expect(
-        () => container.read(bookmarkRepositoryProvider),
-        throwsException,
-      );
+      expect(() => container.read(bookmarkRepositoryProvider), throwsException);
     });
   });
 }

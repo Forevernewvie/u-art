@@ -7,7 +7,8 @@ class KopisDisclaimer extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get today's date in YYYY.MM.DD format
     final now = DateTime.now();
-    final dateString = "\${now.year}.\${now.month.toString().padLeft(2, '0')}.\${now.day.toString().padLeft(2, '0')}";
+    final dateString =
+        "${now.year}.${now.month.toString().padLeft(2, '0')}.${now.day.toString().padLeft(2, '0')}";
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),

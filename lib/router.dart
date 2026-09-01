@@ -27,7 +27,8 @@ final GoRouter appRouter = GoRouter(
                   path: 'detail/:id',
                   name: 'home_detail',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) => DetailScreen(id: state.pathParameters['id']!),
+                  builder: (context, state) =>
+                      DetailScreen(id: state.pathParameters['id']!),
                 ),
               ],
             ),
@@ -43,7 +44,8 @@ final GoRouter appRouter = GoRouter(
                   path: 'detail/:id',
                   name: 'search_detail',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) => DetailScreen(id: state.pathParameters['id']!),
+                  builder: (context, state) =>
+                      DetailScreen(id: state.pathParameters['id']!),
                 ),
               ],
             ),
@@ -59,7 +61,8 @@ final GoRouter appRouter = GoRouter(
                   path: 'detail/:id',
                   name: 'bookmark_detail',
                   parentNavigatorKey: rootNavigatorKey,
-                  builder: (context, state) => DetailScreen(id: state.pathParameters['id']!),
+                  builder: (context, state) =>
+                      DetailScreen(id: state.pathParameters['id']!),
                 ),
               ],
             ),

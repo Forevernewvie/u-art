@@ -23,10 +23,10 @@ class BookmarkNotifier extends _$BookmarkNotifier {
       try {
         final uartService = ref.read(uartApiServiceProvider);
         final detail = await uartService.getPerformanceDetail(id);
-        
+
         // Schedule D-1 Notification
         await notiService.scheduleD1Notification(detail);
-        
+
         // Schedule Ticket Open Alert (simulated 5 seconds after bookmarking for Demo)
         if (detail.state.contains('예정')) {
           await notiService.scheduleTicketOpenNotification(detail);

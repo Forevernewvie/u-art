@@ -33,12 +33,14 @@ class DetailScreen extends ConsumerWidget {
               ref.read(bookmarkProvider.notifier).toggleBookmark(id);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(isBookmarked ? '찜 목록에서 삭제되었습니다.' : '찜 목록에 추가되었습니다.'),
+                  content: Text(
+                    isBookmarked ? '찜 목록에서 삭제되었습니다.' : '찜 목록에 추가되었습니다.',
+                  ),
                   duration: const Duration(seconds: 1),
                 ),
               );
             },
-          )
+          ),
         ],
       ),
       body: state.when(
@@ -58,7 +60,8 @@ class DetailScreen extends ConsumerWidget {
                         imageUrl: detail.posterUrl,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorWidget: (context, url, error) => const Icon(Icons.error),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
                       ),
                     ),
                     Padding(
@@ -69,26 +72,39 @@ class DetailScreen extends ConsumerWidget {
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.amber.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   detail.genre,
-                                  style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 12),
+                                  style: const TextStyle(
+                                    color: Colors.amber,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.white12,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   detail.state,
-                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ],
@@ -96,30 +112,72 @@ class DetailScreen extends ConsumerWidget {
                           const SizedBox(height: 10),
                           Text(
                             detail.title,
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 20),
-                          _buildInfoRow(Icons.calendar_today, '공연기간', '${detail.startDate} ~ ${detail.endDate}'),
-                          _buildInfoRow(Icons.schedule, '공연시간', detail.timeGuidance),
-                          _buildInfoRow(Icons.timer_outlined, '관람시간', detail.runtime),
-                          _buildInfoRow(Icons.location_on, '공연장소', detail.venue),
+                          _buildInfoRow(
+                            Icons.calendar_today,
+                            '공연기간',
+                            '${detail.startDate} ~ ${detail.endDate}',
+                          ),
+                          _buildInfoRow(
+                            Icons.schedule,
+                            '공연시간',
+                            detail.timeGuidance,
+                          ),
+                          _buildInfoRow(
+                            Icons.timer_outlined,
+                            '관람시간',
+                            detail.runtime,
+                          ),
+                          _buildInfoRow(
+                            Icons.location_on,
+                            '공연장소',
+                            detail.venue,
+                          ),
                           _buildInfoRow(Icons.person, '관람연령', detail.ageLimit),
-                          _buildInfoRow(Icons.confirmation_number_outlined, '티켓가격', detail.price),
+                          _buildInfoRow(
+                            Icons.confirmation_number_outlined,
+                            '티켓가격',
+                            detail.price,
+                          ),
                           _buildInfoRow(Icons.groups, '출연진', detail.cast),
-                          
+
                           const SizedBox(height: 24),
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
                               onPressed: () {
-                                _addToCalendar(context, detail.title, detail.venue, detail.startDate, detail.endDate);
+                                _addToCalendar(
+                                  context,
+                                  detail.title,
+                                  detail.venue,
+                                  detail.startDate,
+                                  detail.endDate,
+                                );
                               },
-                              icon: const Icon(Icons.calendar_month, color: Colors.white),
-                              label: const Text('내 캘린더에 일정 추가', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                              icon: const Icon(
+                                Icons.calendar_month,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                '내 캘린더에 일정 추가',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(color: Colors.white38),
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),
@@ -128,17 +186,22 @@ class DetailScreen extends ConsumerWidget {
                             const SizedBox(height: 32),
                             const Text(
                               '공연 상세 안내',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const SizedBox(height: 16),
-                            ...detail.detailImages.map((url) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: CachedNetworkImage(
-                                imageUrl: url,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
+                            ...detail.detailImages.map(
+                              (url) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: CachedNetworkImage(
+                                  imageUrl: url,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                            )),
+                            ),
                           ],
                         ],
                       ),
@@ -164,13 +227,17 @@ class DetailScreen extends ConsumerWidget {
                       ),
                     ),
                     child: ElevatedButton.icon(
-                      onPressed: () => _handleBooking(context, detail.bookingLinks),
+                      onPressed: () =>
+                          _handleBooking(context, detail.bookingLinks),
                       icon: const Icon(Icons.confirmation_number, size: 22),
                       label: Text(
                         detail.bookingLinks.length > 1
                             ? '예매처 바로가기 (${detail.bookingLinks.length}곳)'
                             : '지금 예매하기 (${detail.bookingLinks.first.name})',
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
@@ -215,21 +282,49 @@ class DetailScreen extends ConsumerWidget {
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     child: Text(
                       '예매처를 선택해주세요',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  ...links.map((link) => ListTile(
-                    leading: const Icon(Icons.open_in_new, color: Colors.amber),
-                    title: Text(link.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                    subtitle: Text(link.url, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white38, fontSize: 11)),
-                    trailing: const Icon(Icons.chevron_right, color: Colors.white54),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      _launchUrl(link.url);
-                    },
-                  )),
+                  ...links.map(
+                    (link) => ListTile(
+                      leading: const Icon(
+                        Icons.open_in_new,
+                        color: Colors.amber,
+                      ),
+                      title: Text(
+                        link.name,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      subtitle: Text(
+                        link.url,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 11,
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: Colors.white54,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _launchUrl(link.url);
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -247,7 +342,9 @@ class DetailScreen extends ConsumerWidget {
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
-    if (value.isEmpty || value.trim() == '정보 없음') return const SizedBox.shrink();
+    if (value.isEmpty || value.trim() == '정보 없음') {
+      return const SizedBox.shrink();
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
@@ -265,7 +362,11 @@ class DetailScreen extends ConsumerWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 14),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
             ),
           ),
         ],
@@ -273,11 +374,17 @@ class DetailScreen extends ConsumerWidget {
     );
   }
 
-  void _addToCalendar(BuildContext context, String title, String venue, String start, String end) {
+  void _addToCalendar(
+    BuildContext context,
+    String title,
+    String venue,
+    String start,
+    String end,
+  ) {
     try {
       final startDate = DateTime.parse(start.replaceAll('.', ''));
       final endDate = DateTime.parse(end.replaceAll('.', ''));
-      
+
       final event = Event(
         title: title,
         description: 'U-Art에서 추가된 공연입니다.',

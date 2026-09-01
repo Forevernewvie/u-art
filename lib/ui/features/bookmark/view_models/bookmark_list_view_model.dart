@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:u_art/data/models/performance.dart';
 import 'package:u_art/data/repositories/performance_repository.dart';
-import 'package:u_art/ui/features/bookmark/view_models/bookmark_view_model.dart'; 
+import 'package:u_art/ui/features/bookmark/view_models/bookmark_view_model.dart';
 
 part 'bookmark_list_view_model.g.dart';
 
@@ -39,7 +39,7 @@ class BookmarkListViewModel extends _$BookmarkListViewModel {
 
     if (expiredIds.isNotEmpty) {
       Future.microtask(() {
-        for(final id in expiredIds) {
+        for (final id in expiredIds) {
           ref.read(bookmarkProvider.notifier).toggleBookmark(id);
         }
       });

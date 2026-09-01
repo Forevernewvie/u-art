@@ -23,14 +23,23 @@ void main() {
 
   testWidgets('HomeScreen loads and displays data', (tester) async {
     final performance = Performance(
-      id: '1', title: 'Test Performance', startDate: '2023.01.01', endDate: '2023.12.31',
-      venue: 'Test Venue', posterUrl: 'http://test.com/poster.jpg', genre: 'Musical', state: 'Playing'
-    , district: '전체');
+      id: '1',
+      title: 'Test Performance',
+      startDate: '2023.01.01',
+      endDate: '2023.12.31',
+      venue: 'Test Venue',
+      posterUrl: 'http://test.com/poster.jpg',
+      genre: 'Musical',
+      state: 'Playing',
+      district: '전체',
+    );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          homeViewModelProvider.overrideWith(() => MockHomeViewModel([performance])),
+          homeViewModelProvider.overrideWith(
+            () => MockHomeViewModel([performance]),
+          ),
         ],
         child: const MaterialApp(home: HomeScreen()),
       ),
@@ -42,30 +51,35 @@ void main() {
 
   testWidgets('SearchScreen searches and displays data', (tester) async {
     final performance = Performance(
-      id: '1', title: 'Test Performance', startDate: '2023.01.01', endDate: '2023.12.31',
-      venue: 'Test Venue', posterUrl: 'http://test.com/poster.jpg', genre: 'Musical', state: 'Playing'
-    , district: '전체');
+      id: '1',
+      title: 'Test Performance',
+      startDate: '2023.01.01',
+      endDate: '2023.12.31',
+      venue: 'Test Venue',
+      posterUrl: 'http://test.com/poster.jpg',
+      genre: 'Musical',
+      state: 'Playing',
+      district: '전체',
+    );
 
     final mockSearch = MockSearchViewModel([performance]);
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          searchViewModelProvider.overrideWith(() => mockSearch),
-        ],
+        overrides: [searchViewModelProvider.overrideWith(() => mockSearch)],
         child: const MaterialApp(home: SearchScreen()),
       ),
     );
 
     await tester.pumpAndSettle();
     expect(find.byType(TextField), findsOneWidget);
-    
+
     await tester.enterText(find.byType(TextField), 'Test');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
-    
+
     expect(find.text('Test Performance'), findsWidgets);
-    
+
     // Tap genre chip
     await tester.tap(find.text('뮤지컬').first);
     await tester.pumpAndSettle();
@@ -76,34 +90,46 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          searchViewModelProvider.overrideWith(() => mockSearch),
-        ],
+        overrides: [searchViewModelProvider.overrideWith(() => mockSearch)],
         child: const MaterialApp(home: SearchScreen()),
       ),
     );
 
     await tester.pumpAndSettle();
-    
+
     await tester.enterText(find.byType(TextField), 'Test');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
-    
+
     expect(find.textContaining('해당 조건에 맞는 공연이 없습니다.'), findsOneWidget);
   });
 
   testWidgets('BookmarkScreen loads and displays data', (tester) async {
     final detail = PerformanceDetail(
-      id: '1', title: 'Test Performance', startDate: '2023.01.01', endDate: '2023.12.31',
-      venue: 'Test Venue', cast: 'Actor 1', runtime: '120m', timeGuidance: '19:30', ageLimit: '12+', price: '10000',
-      posterUrl: 'http://test.com/poster.jpg', genre: 'Musical', state: 'Playing', district: '전체',
-      bookingLinks: [], detailImages: []
+      id: '1',
+      title: 'Test Performance',
+      startDate: '2023.01.01',
+      endDate: '2023.12.31',
+      venue: 'Test Venue',
+      cast: 'Actor 1',
+      runtime: '120m',
+      timeGuidance: '19:30',
+      ageLimit: '12+',
+      price: '10000',
+      posterUrl: 'http://test.com/poster.jpg',
+      genre: 'Musical',
+      state: 'Playing',
+      district: '전체',
+      bookingLinks: [],
+      detailImages: [],
     );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          bookmarkListViewModelProvider.overrideWith(() => MockBookmarkListViewModel([detail])),
+          bookmarkListViewModelProvider.overrideWith(
+            () => MockBookmarkListViewModel([detail]),
+          ),
         ],
         child: const MaterialApp(home: BookmarkScreen()),
       ),
@@ -131,7 +157,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          bookmarkListViewModelProvider.overrideWith(() => MockBookmarkListViewModel([])),
+          bookmarkListViewModelProvider.overrideWith(
+            () => MockBookmarkListViewModel([]),
+          ),
         ],
         child: const MaterialApp(home: BookmarkScreen()),
       ),
@@ -141,66 +169,95 @@ void main() {
     expect(find.text('찜한 공연이 없습니다.'), findsOneWidget);
   });
 
-  testWidgets('DetailScreen loads and displays data with multiple booking links', (tester) async {
-    final detail = PerformanceDetail(
-      id: '1', title: 'Test Performance', startDate: '2023.01.01', endDate: '2023.12.31',
-      venue: 'Test Venue', cast: 'Actor 1', runtime: '120m', timeGuidance: '금요일(19:30)', ageLimit: '12+', price: '10000',
-      posterUrl: 'http://test.com/poster.jpg', genre: 'Musical', state: '공연중', district: '전체',
-      bookingLinks: [
-        BookingLink(name: '인터파크', url: 'http://book.com'),
-        BookingLink(name: '예스24', url: 'http://yes24.com'),
-      ],
-      detailImages: ['http://img.com']
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          detailViewModelProvider('1').overrideWith(() => MockDetailViewModel(detail)),
-          bookmarkProvider.overrideWith(() => MockBookmarkNotifier(['1'])),
+  testWidgets(
+    'DetailScreen loads and displays data with multiple booking links',
+    (tester) async {
+      final detail = PerformanceDetail(
+        id: '1',
+        title: 'Test Performance',
+        startDate: '2023.01.01',
+        endDate: '2023.12.31',
+        venue: 'Test Venue',
+        cast: 'Actor 1',
+        runtime: '120m',
+        timeGuidance: '금요일(19:30)',
+        ageLimit: '12+',
+        price: '10000',
+        posterUrl: 'http://test.com/poster.jpg',
+        genre: 'Musical',
+        state: '공연중',
+        district: '전체',
+        bookingLinks: [
+          BookingLink(name: '인터파크', url: 'http://book.com'),
+          BookingLink(name: '예스24', url: 'http://yes24.com'),
         ],
-        child: const MaterialApp(home: DetailScreen(id: '1')),
-      ),
-    );
+        detailImages: ['http://img.com'],
+      );
 
-    await tester.pumpAndSettle();
-    expect(find.text('Test Performance'), findsWidgets);
-    expect(find.text('Actor 1'), findsOneWidget);
-    expect(find.text('금요일(19:30)'), findsOneWidget);
-    
-    // Tap bookmark icon
-    await tester.tap(find.byIcon(Icons.favorite));
-    await tester.pump();
-    
-    // Tap calendar button with invalid date format (triggers error snackbar)
-    await tester.tap(find.text('내 캘린더에 일정 추가'));
-    await tester.pump();
-    
-    // Tap booking button (multiple vendors)
-    await tester.tap(find.textContaining('예매처 바로가기'));
-    await tester.pumpAndSettle();
-    expect(find.text('예매처를 선택해주세요'), findsOneWidget);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            detailViewModelProvider(
+              '1',
+            ).overrideWith(() => MockDetailViewModel(detail)),
+            bookmarkProvider.overrideWith(() => MockBookmarkNotifier(['1'])),
+          ],
+          child: const MaterialApp(home: DetailScreen(id: '1')),
+        ),
+      );
 
-    // Tap first vendor in modal sheet
-    await tester.tap(find.text('인터파크'));
-    await tester.pumpAndSettle();
-  });
+      await tester.pumpAndSettle();
+      expect(find.text('Test Performance'), findsWidgets);
+      expect(find.text('Actor 1'), findsOneWidget);
+      expect(find.text('금요일(19:30)'), findsOneWidget);
 
-  testWidgets('DetailScreen with single booking link and valid date calendar', (tester) async {
+      // Tap bookmark icon
+      await tester.tap(find.byIcon(Icons.favorite));
+      await tester.pump();
+
+      // Tap calendar button with invalid date format (triggers error snackbar)
+      await tester.tap(find.text('내 캘린더에 일정 추가'));
+      await tester.pump();
+
+      // Tap booking button (multiple vendors)
+      await tester.tap(find.textContaining('예매처 바로가기'));
+      await tester.pumpAndSettle();
+      expect(find.text('예매처를 선택해주세요'), findsOneWidget);
+
+      // Tap first vendor in modal sheet
+      await tester.tap(find.text('인터파크'));
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets('DetailScreen with single booking link and valid date calendar', (
+    tester,
+  ) async {
     final detail = PerformanceDetail(
-      id: '2', title: 'Single Booking Test', startDate: '2026.10.01', endDate: '2026.10.02',
-      venue: 'Test Venue', cast: 'Actor 2', runtime: '', timeGuidance: '', ageLimit: '', price: '',
-      posterUrl: 'http://test.com/poster2.jpg', genre: 'Play', state: '공연예정', district: '전체',
-      bookingLinks: [
-        BookingLink(name: '인터파크', url: 'http://book.com'),
-      ],
-      detailImages: []
+      id: '2',
+      title: 'Single Booking Test',
+      startDate: '2026.10.01',
+      endDate: '2026.10.02',
+      venue: 'Test Venue',
+      cast: 'Actor 2',
+      runtime: '',
+      timeGuidance: '',
+      ageLimit: '',
+      price: '',
+      posterUrl: 'http://test.com/poster2.jpg',
+      genre: 'Play',
+      state: '공연예정',
+      district: '전체',
+      bookingLinks: [BookingLink(name: '인터파크', url: 'http://book.com')],
+      detailImages: [],
     );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          detailViewModelProvider('2').overrideWith(() => MockDetailViewModel(detail)),
+          detailViewModelProvider(
+            '2',
+          ).overrideWith(() => MockDetailViewModel(detail)),
           bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
         ],
         child: const MaterialApp(home: DetailScreen(id: '2')),
@@ -208,7 +265,7 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    
+
     // Tap single booking button
     await tester.tap(find.textContaining('지금 예매하기'));
     await tester.pump();
@@ -221,15 +278,30 @@ void main() {
 
   testWidgets('DetailScreen with invalid calendar date', (tester) async {
     final detail = PerformanceDetail(
-      id: '3', title: 'Test', startDate: 'invalid_date', endDate: 'invalid_date',
-      venue: 'Test Venue', cast: '', runtime: '', timeGuidance: '', ageLimit: '', price: '',
-      posterUrl: '', genre: '', state: '', district: '전체', bookingLinks: [], detailImages: []
+      id: '3',
+      title: 'Test',
+      startDate: 'invalid_date',
+      endDate: 'invalid_date',
+      venue: 'Test Venue',
+      cast: '',
+      runtime: '',
+      timeGuidance: '',
+      ageLimit: '',
+      price: '',
+      posterUrl: '',
+      genre: '',
+      state: '',
+      district: '전체',
+      bookingLinks: [],
+      detailImages: [],
     );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          detailViewModelProvider('3').overrideWith(() => MockDetailViewModel(detail)),
+          detailViewModelProvider(
+            '3',
+          ).overrideWith(() => MockDetailViewModel(detail)),
           bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
         ],
         child: const MaterialApp(home: DetailScreen(id: '3')),
@@ -237,18 +309,20 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    
+
     // Tap calendar button with invalid date format (triggers error snackbar)
     await tester.tap(find.text('내 캘린더에 일정 추가'));
     await tester.pump();
     expect(find.text('일정 형식이 올바르지 않아 추가할 수 없습니다.'), findsOneWidget);
   });
-  
+
   testWidgets('DetailScreen loading and error states', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          detailViewModelProvider('error').overrideWith(() => MockDetailViewModelError()),
+          detailViewModelProvider(
+            'error',
+          ).overrideWith(() => MockDetailViewModelError()),
           bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
         ],
         child: const MaterialApp(home: DetailScreen(id: 'error')),
@@ -256,7 +330,7 @@ void main() {
     );
 
     await tester.pump();
-    
+
     await tester.pumpAndSettle();
     expect(find.textContaining('오류 발생'), findsOneWidget);
   });

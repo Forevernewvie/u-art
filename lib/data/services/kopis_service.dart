@@ -7,7 +7,8 @@ class KopisService {
   final String _apiKey;
   final http.Client _client;
 
-  KopisService(this._apiKey, {http.Client? client}) : _client = client ?? http.Client();
+  KopisService(this._apiKey, {http.Client? client})
+    : _client = client ?? http.Client();
 
   Future<List<Performance>> getPerformances({
     required String stdate,
@@ -31,7 +32,11 @@ class KopisService {
       queryParams['signgucode'] = signgucode;
     }
 
-    final url = Uri.http('kopis.or.kr', '/openApi/restful/pblprfr', queryParams);
+    final url = Uri.http(
+      'kopis.or.kr',
+      '/openApi/restful/pblprfr',
+      queryParams,
+    );
     final response = await _client.get(url);
 
     if (response.statusCode == 200) {
@@ -67,7 +72,9 @@ class KopisService {
   }
 
   Future<PerformanceDetail> getPerformanceDetail(String id) async {
-    final url = Uri.http('kopis.or.kr', '/openApi/restful/pblprfr/$id', {'service': _apiKey});
+    final url = Uri.http('kopis.or.kr', '/openApi/restful/pblprfr/$id', {
+      'service': _apiKey,
+    });
     final response = await _client.get(url);
 
     if (response.statusCode == 200) {

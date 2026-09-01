@@ -14,29 +14,40 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin;
   bool _initialized = false;
 
-  NotificationService({FlutterLocalNotificationsPlugin? plugin}) 
-      : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
+  NotificationService({FlutterLocalNotificationsPlugin? plugin})
+    : _plugin = plugin ?? FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
     if (_initialized) return;
-    
+
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Seoul'));
 
-    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings initializationSettingsDarwin = DarwinInitializationSettings();
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsDarwin,
-    );
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings();
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsDarwin,
+        );
 
     await _plugin.initialize(settings: initializationSettings);
-    
+
     if (!kIsWeb) {
-      await _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
-      await _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestExactAlarmsPermission();
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestNotificationsPermission();
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestExactAlarmsPermission();
     }
-    
+
     _initialized = true;
   }
 
@@ -47,13 +58,15 @@ class NotificationService {
 
   Future<void> scheduleD1Notification(PerformanceDetail detail) async {
     await initialize();
-    
+
     try {
       final dateFormat = DateFormat('yyyy.MM.dd');
       final startDate = dateFormat.parse(detail.startDate);
-      
-      final scheduledDate = startDate.subtract(const Duration(days: 1)).add(const Duration(hours: 10));
-      
+
+      final scheduledDate = startDate
+          .subtract(const Duration(days: 1))
+          .add(const Duration(hours: 10));
+
       if (scheduledDate.isBefore(DateTime.now())) {
         return;
       }
@@ -84,7 +97,7 @@ class NotificationService {
 
   Future<void> scheduleTicketOpenNotification(PerformanceDetail detail) async {
     await initialize();
-    
+
     final scheduledDate = DateTime.now().add(const Duration(seconds: 5));
     final notificationId = '${detail.id}_ticket'.hashCode;
 
@@ -103,7 +116,7 @@ class NotificationService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 }

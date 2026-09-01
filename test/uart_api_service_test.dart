@@ -28,12 +28,13 @@ void main() {
           "venue": "Test Venue",
           "posterUrl": "http://test.com/poster.jpg",
           "genre": "Musical",
-          "state": "Playing"
-        }
+          "state": "Playing",
+        },
       ];
 
       when(mockClient.get(any, headers: anyNamed('headers'))).thenAnswer(
-        (_) async => http.Response.bytes(utf8.encode(json.encode(jsonResponse)), 200)
+        (_) async =>
+            http.Response.bytes(utf8.encode(json.encode(jsonResponse)), 200),
       );
 
       final result = await service.getPerformances(
@@ -49,9 +50,9 @@ void main() {
     });
 
     test('getPerformances throws on error', () async {
-      when(mockClient.get(any, headers: anyNamed('headers'))).thenAnswer(
-        (_) async => http.Response('Error', 404)
-      );
+      when(
+        mockClient.get(any, headers: anyNamed('headers')),
+      ).thenAnswer((_) async => http.Response('Error', 404));
 
       expect(
         () => service.getPerformances(stdate: 'a', eddate: 'b'),
@@ -75,13 +76,14 @@ void main() {
         "genre": "Musical",
         "state": "Playing",
         "bookingLinks": [
-          {"name": "예매처", "url": "http://test.com/book"}
+          {"name": "예매처", "url": "http://test.com/book"},
         ],
-        "detailImages": ["http://test.com/detail.jpg"]
+        "detailImages": ["http://test.com/detail.jpg"],
       };
 
       when(mockClient.get(any, headers: anyNamed('headers'))).thenAnswer(
-        (_) async => http.Response.bytes(utf8.encode(json.encode(jsonResponse)), 200)
+        (_) async =>
+            http.Response.bytes(utf8.encode(json.encode(jsonResponse)), 200),
       );
 
       final result = await service.getPerformanceDetail('PF123');
@@ -96,14 +98,11 @@ void main() {
     });
 
     test('getPerformanceDetail throws on error', () async {
-      when(mockClient.get(any, headers: anyNamed('headers'))).thenAnswer(
-        (_) async => http.Response('Error', 404)
-      );
+      when(
+        mockClient.get(any, headers: anyNamed('headers')),
+      ).thenAnswer((_) async => http.Response('Error', 404));
 
-      expect(
-        () => service.getPerformanceDetail('PF123'),
-        throwsException,
-      );
+      expect(() => service.getPerformanceDetail('PF123'), throwsException);
     });
   });
 }

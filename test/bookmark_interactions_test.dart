@@ -15,28 +15,42 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final detail = PerformanceDetail(
-      id: '1', title: 'T', startDate: 'S', endDate: 'E', venue: 'V', cast: 'C', runtime: 'R', 
-      timeGuidance: 'TG', ageLimit: 'A', price: 'P', posterUrl: 'invalid_url', genre: 'G', state: 'S', district: '전체', bookingLinks: [], detailImages: []
+      id: '1',
+      title: 'T',
+      startDate: 'S',
+      endDate: 'E',
+      venue: 'V',
+      cast: 'C',
+      runtime: 'R',
+      timeGuidance: 'TG',
+      ageLimit: 'A',
+      price: 'P',
+      posterUrl: 'invalid_url',
+      genre: 'G',
+      state: 'S',
+      district: '전체',
+      bookingLinks: [],
+      detailImages: [],
     );
 
     final router = GoRouter(
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const BookmarkScreen(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const BookmarkScreen()),
         GoRoute(
           path: '/detail/:id',
           name: 'bookmark_detail',
-          builder: (context, state) => Text('Detail ${state.pathParameters['id']}'),
+          builder: (context, state) =>
+              Text('Detail ${state.pathParameters['id']}'),
         ),
-      ]
+      ],
     );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          bookmarkListViewModelProvider.overrideWith(() => MockBookmarkListViewModel([detail])),
+          bookmarkListViewModelProvider.overrideWith(
+            () => MockBookmarkListViewModel([detail]),
+          ),
           bookmarkProvider.overrideWith(() => MockBookmarkNotifier(['1'])),
         ],
         child: MaterialApp.router(routerConfig: router),
@@ -44,18 +58,20 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    
+
     // tap item
     await tester.tap(find.text('T'));
     await tester.pumpAndSettle();
     expect(find.text('Detail 1'), findsOneWidget);
   });
-  
+
   testWidgets('BookmarkScreen error state', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          bookmarkListViewModelProvider.overrideWith(() => MockBookmarkListViewModelError()),
+          bookmarkListViewModelProvider.overrideWith(
+            () => MockBookmarkListViewModelError(),
+          ),
           bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
         ],
         child: const MaterialApp(home: BookmarkScreen()),
@@ -65,7 +81,7 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
     expect(find.textContaining('찜 목록을 불러오는 중 오류가 발생했습니다.'), findsOneWidget);
-    
+
     // Tap refresh
     await tester.tap(find.text('새로고침'));
     await tester.pumpAndSettle();

@@ -12,9 +12,7 @@ class BookmarkScreen extends ConsumerWidget {
     final state = ref.watch(bookmarkListViewModelProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('찜 목록'),
-      ),
+      appBar: AppBar(title: const Text('찜 목록')),
       body: state.when(
         data: (performances) {
           if (performances.isEmpty) {
@@ -25,12 +23,15 @@ class BookmarkScreen extends ConsumerWidget {
                   Icon(Icons.favorite_border, size: 64, color: Colors.white24),
                   SizedBox(height: 16),
                   Text('찜한 공연이 없습니다.', style: TextStyle(color: Colors.white54)),
-                  Text('마음에 드는 공연에 하트를 눌러보세요.', style: TextStyle(color: Colors.white54)),
+                  Text(
+                    '마음에 드는 공연에 하트를 눌러보세요.',
+                    style: TextStyle(color: Colors.white54),
+                  ),
                 ],
               ),
             );
           }
-          
+
           return GridView.builder(
             padding: const EdgeInsets.all(16),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -43,7 +44,10 @@ class BookmarkScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final perf = performances[index];
               return GestureDetector(
-                onTap: () => context.pushNamed('bookmark_detail', pathParameters: {'id': perf.id}),
+                onTap: () => context.pushNamed(
+                  'bookmark_detail',
+                  pathParameters: {'id': perf.id},
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -54,14 +58,19 @@ class BookmarkScreen extends ConsumerWidget {
                           imageUrl: perf.posterUrl,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.error),
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       perf.genre,
-                      style: const TextStyle(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       perf.title,
@@ -71,7 +80,10 @@ class BookmarkScreen extends ConsumerWidget {
                     ),
                     Text(
                       perf.startDate,
-                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -86,11 +98,14 @@ class BookmarkScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 64, color: Colors.white24),
               const SizedBox(height: 16),
-              const Text('찜 목록을 불러오는 중 오류가 발생했습니다.', style: TextStyle(color: Colors.white54)),
+              const Text(
+                '찜 목록을 불러오는 중 오류가 발생했습니다.',
+                style: TextStyle(color: Colors.white54),
+              ),
               TextButton(
                 onPressed: () => ref.invalidate(bookmarkListViewModelProvider),
                 child: const Text('새로고침'),
-              )
+              ),
             ],
           ),
         ),

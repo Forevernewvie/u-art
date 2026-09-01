@@ -8,7 +8,9 @@ part 'performance_repository.g.dart';
 @riverpod
 UartApiService uartApiService(Ref ref) {
   // Production Cloudflare Tunnel endpoint
-  return UartApiService('https://loaded-boring-keeping-previously.trycloudflare.com'); 
+  return UartApiService(
+    'https://loaded-boring-keeping-previously.trycloudflare.com',
+  );
 }
 
 @riverpod
@@ -24,26 +26,26 @@ class PerformanceRepository {
   Future<List<Performance>> getUpcomingPerformances() async {
     final now = DateTime.now();
     final endDate = now.add(const Duration(days: 14));
-    
+
     final dateFormat = DateFormat('yyyy.MM.dd');
     final stdateStr = dateFormat.format(now);
     final eddateStr = dateFormat.format(endDate);
 
     final ulsanArtsCenter = await _service.getPerformances(
-      stdate: stdateStr, 
-      eddate: eddateStr, 
-      venue: '울산문화예술회관'
+      stdate: stdateStr,
+      eddate: eddateStr,
+      venue: '울산문화예술회관',
     );
-    
+
     final jungguArtsCenter = await _service.getPerformances(
-      stdate: stdateStr, 
-      eddate: eddateStr, 
-      venue: '중구문화의전당'
+      stdate: stdateStr,
+      eddate: eddateStr,
+      venue: '중구문화의전당',
     );
 
     final combined = [...ulsanArtsCenter, ...jungguArtsCenter];
     combined.sort((a, b) => a.startDate.compareTo(b.startDate));
-    
+
     return combined;
   }
 

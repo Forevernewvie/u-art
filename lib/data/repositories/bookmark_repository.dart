@@ -5,7 +5,9 @@ part 'bookmark_repository.g.dart';
 
 @riverpod
 BookmarkRepository bookmarkRepository(Ref ref) {
-  throw UnimplementedError('Initialize with SharedPreferences in main.dart or use FutureProvider');
+  throw UnimplementedError(
+    'Initialize with SharedPreferences in main.dart or use FutureProvider',
+  );
 }
 
 class BookmarkRepository {

@@ -5,10 +5,7 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.dark,
     scaffoldBackgroundColor: Colors.black,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.black,
-      elevation: 0,
-    ),
+    appBarTheme: const AppBarTheme(backgroundColor: Colors.black, elevation: 0),
     colorScheme: const ColorScheme.dark(
       surface: Colors.black,
       primary: Colors.white,

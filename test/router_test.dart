@@ -12,46 +12,72 @@ import 'package:u_art/data/models/performance.dart';
 void main() {
   testWidgets('Router navigates correctly', (tester) async {
     final performance = Performance(
-      id: '1', title: 'T', startDate: 'S', endDate: 'E',
-      venue: 'V', posterUrl: '', genre: 'G', state: 'S'
-    , district: '전체');
+      id: '1',
+      title: 'T',
+      startDate: 'S',
+      endDate: 'E',
+      venue: 'V',
+      posterUrl: '',
+      genre: 'G',
+      state: 'S',
+      district: '전체',
+    );
     final detail = PerformanceDetail(
-      id: '1', title: 'T', startDate: '2023.01.01', endDate: '2023.12.31',
-      venue: 'V', cast: 'C', runtime: '120m', timeGuidance: '19:30', ageLimit: '12+', price: '10000',
-      posterUrl: '', genre: 'G', state: 'S', district: '전체', bookingLinks: [], detailImages: []
+      id: '1',
+      title: 'T',
+      startDate: '2023.01.01',
+      endDate: '2023.12.31',
+      venue: 'V',
+      cast: 'C',
+      runtime: '120m',
+      timeGuidance: '19:30',
+      ageLimit: '12+',
+      price: '10000',
+      posterUrl: '',
+      genre: 'G',
+      state: 'S',
+      district: '전체',
+      bookingLinks: [],
+      detailImages: [],
     );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          homeViewModelProvider.overrideWith(() => MockHomeViewModel([performance])),
-          searchViewModelProvider.overrideWith(() => MockSearchViewModel([performance])),
-          bookmarkListViewModelProvider.overrideWith(() => MockBookmarkListViewModel([detail])),
-          detailViewModelProvider('1').overrideWith(() => MockDetailViewModel(detail)),
+          homeViewModelProvider.overrideWith(
+            () => MockHomeViewModel([performance]),
+          ),
+          searchViewModelProvider.overrideWith(
+            () => MockSearchViewModel([performance]),
+          ),
+          bookmarkListViewModelProvider.overrideWith(
+            () => MockBookmarkListViewModel([detail]),
+          ),
+          detailViewModelProvider(
+            '1',
+          ).overrideWith(() => MockDetailViewModel(detail)),
           bookmarkProvider.overrideWith(() => MockBookmarkNotifier(['1'])),
         ],
-        child: MaterialApp.router(
-          routerConfig: appRouter,
-        ),
+        child: MaterialApp.router(routerConfig: appRouter),
       ),
     );
 
     await tester.pumpAndSettle();
-    
+
     // Tap on detail from home
     appRouter.goNamed('home_detail', pathParameters: {'id': '1'});
     await tester.pumpAndSettle();
     expect(find.text('T'), findsWidgets);
-    
+
     appRouter.go('/search');
     await tester.pumpAndSettle();
-    
+
     appRouter.goNamed('search_detail', pathParameters: {'id': '1'});
     await tester.pumpAndSettle();
-    
+
     appRouter.go('/bookmark');
     await tester.pumpAndSettle();
-    
+
     appRouter.goNamed('bookmark_detail', pathParameters: {'id': '1'});
     await tester.pumpAndSettle();
   });

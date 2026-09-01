@@ -11,11 +11,24 @@ void main() {
       initialLocation: '/a',
       routes: [
         StatefulShellRoute.indexedStack(
-          builder: (context, state, navigationShell) => ScaffoldWithNavBar(navigationShell: navigationShell),
+          builder: (context, state, navigationShell) =>
+              ScaffoldWithNavBar(navigationShell: navigationShell),
           branches: [
-            StatefulShellBranch(routes: [GoRoute(path: '/a', builder: (c, s) => const Text('Screen A'))]),
-            StatefulShellBranch(routes: [GoRoute(path: '/b', builder: (c, s) => const Text('Screen B'))]),
-            StatefulShellBranch(routes: [GoRoute(path: '/c', builder: (c, s) => const Text('Screen C'))]),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(path: '/a', builder: (c, s) => const Text('Screen A')),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(path: '/b', builder: (c, s) => const Text('Screen B')),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(path: '/c', builder: (c, s) => const Text('Screen C')),
+              ],
+            ),
           ],
         ),
       ],
@@ -25,15 +38,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Screen A'), findsOneWidget);
-    
+
     await tester.tap(find.text('검색'));
     await tester.pumpAndSettle();
     expect(find.text('Screen B'), findsOneWidget);
-    
+
     await tester.tap(find.text('찜'));
     await tester.pumpAndSettle();
     expect(find.text('Screen C'), findsOneWidget);
-    
+
     await tester.tap(find.text('홈'));
     await tester.pumpAndSettle();
     expect(find.text('Screen A'), findsOneWidget);

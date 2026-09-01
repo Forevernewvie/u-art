@@ -19,7 +19,8 @@ class SearchViewModel extends _$SearchViewModel {
   DateTime calculateEndDate(DateTime now) {
     if (now.month >= 11) {
       final nextYear = now.year + 1;
-      final isLeapYear = (nextYear % 4 == 0 && nextYear % 100 != 0) || (nextYear % 400 == 0);
+      final isLeapYear =
+          (nextYear % 4 == 0 && nextYear % 100 != 0) || (nextYear % 400 == 0);
       return DateTime(nextYear, 2, isLeapYear ? 29 : 28);
     } else {
       return DateTime(now.year, 12, 31);
@@ -52,7 +53,11 @@ class SearchViewModel extends _$SearchViewModel {
         return _filterPerformances(_cachedAllPerformances, query, genre);
       });
     } else {
-      final filtered = _filterPerformances(_cachedAllPerformances, query, genre);
+      final filtered = _filterPerformances(
+        _cachedAllPerformances,
+        query,
+        genre,
+      );
       state = AsyncValue.data(filtered);
     }
   }
@@ -65,7 +70,11 @@ class SearchViewModel extends _$SearchViewModel {
     });
   }
 
-  List<Performance> _filterPerformances(List<Performance> list, String query, String genre) {
+  List<Performance> _filterPerformances(
+    List<Performance> list,
+    String query,
+    String genre,
+  ) {
     var result = list;
     final trimmedQuery = query.trim().toLowerCase();
 
