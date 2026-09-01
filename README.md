@@ -22,13 +22,21 @@ U-Art는 울산 시민들을 위한 **맞춤형 문화예술 공연 통합 플�
 U-Art는 모바일 클라이언트와 무중단 백엔드 클러스터로 구성됩니다.
 
 ```mermaid
-graph TD
-    Client[Flutter App] -->|HTTPS| CF[Cloudflare Tunnel]
-    CF -->|Forwarding| API[Node.js API]
-    API -->|Query| DB[(MongoDB)]
-    Crawler[Python Crawler] -->|Insert / Update| DB
-    Crawler -.->|OpenAPI| KOPIS[KOPIS API]
-    Crawler -.->|Crawling| Local[울산 관내 예매처]
+flowchart TD
+    Client[Flutter App]
+    CF[Cloudflare Tunnel]
+    API[Node.js API]
+    DB[(MongoDB)]
+    Crawler[Python Crawler]
+    KOPIS[KOPIS API]
+    LocalSite[울산 관내 예매처]
+
+    Client -- HTTPS --> CF
+    CF -- Forwarding --> API
+    API -- Query --> DB
+    Crawler -- Update --> DB
+    Crawler -. OpenAPI .-> KOPIS
+    Crawler -. Crawling .-> LocalSite
 ```
 
 ---
