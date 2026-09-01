@@ -15,6 +15,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -31,12 +37,6 @@ jobs:
         
       - name: Run Tests
         run: flutter test --coverage
-        
-      # Optional: Upload coverage report
-      #- name: Upload Coverage
-      #  uses: codecov/codecov-action@v3
-      #  with:
-      #    file: coverage/lcov.info
 
   build_android:
     name: Build Android APK
@@ -47,6 +47,12 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
       
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
