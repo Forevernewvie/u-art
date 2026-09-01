@@ -55,15 +55,7 @@ def full_sync_job():
     total_success = total_fail = total_new = 0
     logs = ""
     
-    crawlers = [
-        KopisCrawler(),
-        JungGuCrawler(),
-        UcacCrawler(),
-        NamGuCrawler(),
-        BukGuCrawler(),
-        DongGuCrawler(),
-        UljuCrawler()
-    ]
+    crawlers = get_crawlers()
     
     for crawler in crawlers:
         s, f, n, log = crawler.run()

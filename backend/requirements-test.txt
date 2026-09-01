@@ -1,0 +1,8 @@
+pytest
+mongomock
+requests
+responses
+pymongo
+beautifulsoup4
+schedule
+xmltodict

@@ -72,7 +72,13 @@ flutter pub get
 flutter run
 ```
 
-### 3. 백엔드 설정 (선택 사항)
+### 3. 풀스택 통합 테스트 실행 (Full-Stack Tests)
+```bash
+# Flutter (55개) + Python 크롤러/E2E (6개) + Node.js API (3개) 전 구간 원클릭 검증
+./run_all_tests.sh
+```
+
+### 4. 백엔드 설정 (선택 사항)
 백엔드 로컬 실행 및 배포는 `backend/` 또는 개별 서버 설정 가이드를 참고하세요. 환경 변수(`.env`)는 보안상 Github에 포함되지 않으므로 개별 세팅이 필요합니다.
 
 ---
