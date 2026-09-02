@@ -29,33 +29,21 @@ U-Art는 울산 시민들을 위한 **맞춤형 문화예술 공연 통합 플�
 
 ```mermaid
 flowchart TD
-    subgraph Client [모바일 클라이언트 (Flutter 3.x)]
-        UI[UI 레이어: Home / Search / Detail]
-        Repo[PerformanceRepository & SWR Cache]
-        UI --> Repo
-    end
+    App["Flutter 모바일 앱"]
+    CF["Cloudflare Tunnel"]
+    API["Node.js Express API"]
+    DB[("MongoDB 데이터베이스")]
+    Crawler["Python 크롤러 & 스마트 머지"]
+    KOPIS["KOPIS 공공 API"]
+    LocalVenues["울산 관내 공연장"]
 
-    subgraph Infra [클라우드 / 백엔드 인프라]
-        CF[Cloudflare Tunnel / Zero Trust]
-        API[Node.js Express API Server]
-        DB[(MongoDB 6.0)]
-        Crawler[Python 3 Crawler & Smart Merge]
-    end
-
-    subgraph External [원천 데이터 공급처]
-        KOPIS[KOPIS 공연예술통합전산망 API]
-        Venues[울산 관내 예매처 & 공연장]
-    end
-
-    Repo -- 1차 단일 조회 --> CF
-    CF --> API
-    API --> DB
-    
-    Crawler -- 배치 수집 및 합성 --> DB
-    Crawler -.-> KOPIS
-    Crawler -.-> Venues
-
-    Repo -.->|백엔드 점검 시 자동 폴백| KOPIS
+    App -->|"HTTPS 요청"| CF
+    CF -->|"포워딩"| API
+    API -->|"데이터 조회"| DB
+    Crawler -->|"배치 저장"| DB
+    Crawler -.->|"공연 목록 수집"| KOPIS
+    Crawler -.->|"예매/매진 현황 수집"| LocalVenues
+    App -.->|"백엔드 장애 시 자동 폴백"| KOPIS
 ```
 
 <details>
@@ -71,18 +59,13 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    Request([화면 요청 / 앱 실행]) --> L1{L1 메모리 캐시<br>30분 유효?}
-    L1 -- HIT (0ms) --> Render[화면 즉시 렌더링]
-    
-    L1 -- MISS --> L2{L2 디스크 캐시<br>SharedPreferences}
-    L2 -- HIT (1ms) --> RenderFast[캐시 데이터로 1차 즉시 렌더]
-    RenderFast --> BackgroundFetch[백그라운드 비동기 최신화 unawaited]
-    
-    L2 -- MISS --> Network[L3 백엔드 API 단일 쿼리 60ms]
-    Network --> Fallback{응답 성공?}
-    Fallback -- YES --> UpdateCache[캐시 갱신 & 화면 렌더]
-    Fallback -- NO --> KopisDirect[KOPIS Open API 직접 쿼리]
-    KopisDirect --> UpdateCache
+    Start["화면 요청"] --> L1{"L1 메모리 캐시"}
+    L1 -->|"Hit (0ms)"| UI["화면 즉시 렌더링"]
+    L1 -->|"Miss"| L2{"L2 디스크 캐시"}
+    L2 -->|"Hit (1ms)"| UI
+    L2 -->|"Miss"| API["백엔드 API"]
+    API --> Update["캐시 갱신"]
+    Update --> UI
 ```
 
 </details>
@@ -96,15 +79,11 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Start([상세 화면 진입]) --> CheckSoldOut{실제 매진 여부 확인<br>isSoldOut == true?}
-    
-    CheckSoldOut -- YES --> SoldOutState["🔴 [상태 1: 매진]<br>• '매진 (Sold Out)' 회색 비활성화 버튼<br>• 포스터 상단 -10도 회전 SoldOutStamp 표기"]
-    
-    CheckSoldOut -- NO --> CheckLinks{온라인 예매 링크 존재 여부<br>bookingLinks.isNotEmpty?}
-    
-    CheckLinks -- YES --> HasLinks["🟢 [상태 2: 온라인 예매 가능]<br>• 단일 링크: '지금 예매하기 (예매처명)'<br>• 복수 링크: '예매처 바로가기 (N곳)' ➔ 모달 바텀시트 노출"]
-    
-    CheckLinks -- NO --> NoLinks["🔵 [상태 3: 예매처 미등록 / 현장발권]<br>• '현장 발권 / 공연장 문의 요망' 안내 버튼<br>• 탭 시 공연장 안내 다이얼로그 팝업 노출"]
+    Start["상세 화면"] --> Check1{"매진 여부"}
+    Check1 -->|"매진"| State1["🔴 상태1: 매진 버튼 비활성화"]
+    Check1 -->|"예매 가능"| Check2{"예매처 유무"}
+    Check2 -->|"예매처 있음"| State2["🟢 상태2: 지금 예매하기"]
+    Check2 -->|"예매처 없음"| State3["🔵 상태3: 현장 발권 / 문의 안내"]
 ```
 
 </details>
@@ -117,30 +96,18 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Venues as 울산 공연장 웹
+    participant Venues as 공연장 웹사이트
     participant Kopis as KOPIS Open API
-    participant Crawler as Python 크롤러 & Smart Merge
-    participant DB as 백엔드 (Node.js + MongoDB)
-    participant AppRepo as Flutter PerformanceRepository
-    participant UI as Flutter UI (Home/Search/Detail)
+    participant Crawler as Python 크롤러
+    participant DB as MongoDB 백엔드
+    participant App as Flutter 모바일 앱
 
-    Crawler->>Venues: 중구문화의전당 실시간 예매/매진 현황 크롤링
-    Crawler->>Kopis: 울산 지역 공연 목록(/pblprfr) 조회
-    Crawler->>Crawler: 제목 특수문자 정규화 및 날짜 매칭으로 중복 데이터 합성
-    Crawler->>DB: 통합 데이터 영구 저장
-
-    UI->>AppRepo: 공연 목록 요청
-    AppRepo->>AppRepo: L1 메모리 캐시 (0ms) / L2 디스크 캐시 (1ms)
-    AppRepo->>DB: L3 백엔드 단일 통합 쿼리 (60ms)
-    AppRepo->>AppRepo: synthesizePerformances() (KOPIS 포스터 + 크롤러 상세홀/매진 합성)
-    AppRepo->>UI: 단일 진실 공급원(SSOT) 정렬 데이터 제공
-
-    UI->>AppRepo: getPerformanceDetail(id)
-    alt 가격 누락 또는 예매처 미등록 시
-        AppRepo->>Kopis: KOPIS 상세 API(/pblprfr/{mt20id}) 실시간 조회
-        AppRepo->>AppRepo: R/S석 실제 정가 및 공식 예매처 자동 보강
-    end
-    AppRepo->>UI: 3단계 버튼 UI 제공 (매진 / 예매하기 / 현장발권 안내)
+    Crawler->>Venues: 실시간 예매/매진 크롤링
+    Crawler->>Kopis: 공연 목록 조회
+    Crawler->>DB: 정규화 및 스마트 머지 저장
+    App->>DB: 통합 데이터 조회
+    App->>App: 클라이언트 캐시 및 정렬
+    App->>Kopis: 상세 가격/예매처 보강 조회
 ```
 
 </details>
