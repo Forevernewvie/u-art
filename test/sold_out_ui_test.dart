@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 import 'package:u_art/ui/features/detail/view_models/detail_view_model.dart';
 import 'package:u_art/ui/features/bookmark/view_models/bookmark_view_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MockDetailViewModel extends DetailViewModel {
   final PerformanceDetail _data;
@@ -250,6 +251,56 @@ void main() {
         );
         expect(find.text('공연장 문의'), findsNWidgets(2));
         expect(find.text('공연장/기획사 문의'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'DetailScreen displays 공연장 안내 바로가기 when single link name contains 홈페이지',
+      (tester) async {
+        final homepageDetail = PerformanceDetail(
+          id: 'detail_homepage',
+          title: '홈페이지 공연',
+          startDate: '2026.09.20',
+          endDate: '2026.09.20',
+          venue: '공연장',
+          cast: '출연진',
+          runtime: '60분',
+          timeGuidance: '19:00',
+          ageLimit: '전체 관람가',
+          price: '전석 무료',
+          posterUrl: '',
+          genre: '음악',
+          state: '공연중',
+          district: '남구',
+          bookingLinks: [
+            BookingLink(name: '공식 홈페이지', url: 'https://example.com'),
+          ],
+          detailImages: [],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              detailViewModelProvider(
+                'detail_homepage',
+              ).overrideWith(() => MockDetailViewModel(homepageDetail)),
+              bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
+            ],
+            child: const MaterialApp(
+              home: DetailScreen(id: 'detail_homepage'),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+        expect(
+          find.textContaining('공연장 안내 바로가기 (공식 홈페이지)'),
+          findsOneWidget,
+        );
+
+        final cachedImage = tester.widget<CachedNetworkImage>(find.byType(CachedNetworkImage).first);
+        final errWidget = cachedImage.errorWidget!(tester.element(find.byType(DetailScreen)), 'url', 'err');
+        expect(errWidget, isA<Icon>());
       },
     );
   });
