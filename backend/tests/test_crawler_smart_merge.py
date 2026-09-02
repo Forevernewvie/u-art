@@ -271,5 +271,52 @@ def test_deduplicate_clusters_logic():
     assert len(links) == 2
     assert "공식" in links[0]["name"]
 
+def test_smart_merge_ginginbam_synthesis():
+    """Verify smart synthesis for Ginginbam: preserves KOPIS title, synthesizes price, detailed venue, and sold-out"""
+    mock_db = mongomock.MongoClient().uart
+    crawler = MockBaseCrawler(mock_db)
+
+    # 1. KOPIS item saved first without price
+    kopis_doc = {
+        "id": "PF296392",
+        "kopisId": "PF296392",
+        "title": "긴긴밤 [울산]",
+        "startDate": "2026-09-05",
+        "endDate": "2026-09-05",
+        "venue": "울산중구문화의전당",
+        "posterUrl": "http://kopis.or.kr/ginginbam.jpg",
+        "genre": "한국음악(국악)",
+        "source": "KOPIS"
+    }
+    crawler.save_performance(kopis_doc)
+    assert mock_db.performances.count_documents({}) == 1
+
+    # 2. Crawled item arrives with price, detailed hall, official booking link, and sold-out
+    crawled_doc = {
+        "id": "junggu_8735792628459320356",
+        "title": "입과손스튜디오 <긴긴밤>",
+        "startDate": "2026.09.05",
+        "endDate": "2026.09.05",
+        "venue": "중구문화의전당 (함월홀(2층))",
+        "price": "일반 10,000원",
+        "state": "매진",
+        "isSoldOut": True,
+        "source": "CRAWLED",
+        "bookingLinks": [{"name": "중구문화의전당 예매", "url": "https://artscenter.junggu.ulsan.kr/01_Menu/01.do"}]
+    }
+    crawler.save_performance(crawled_doc)
+
+    # Must remain exactly ONE document
+    assert mock_db.performances.count_documents({}) == 1
+    merged = mock_db.performances.find_one({"startDate": "2026.09.05"})
+    assert merged is not None
+    assert merged["title"] == "긴긴밤 [울산]"  # KOPIS title preserved
+    assert merged["price"] == "일반 10,000원"  # Crawled price synthesized
+    assert merged["venue"] == "중구문화의전당 (함월홀(2층))"  # Detailed venue preserved
+    assert merged["state"] == "매진"  # Sold out propagated
+    assert merged["isSoldOut"] is True
+    assert len(merged["bookingLinks"]) == 1
+    assert merged["bookingLinks"][0]["name"] == "중구문화의전당 예매"
+
 
 

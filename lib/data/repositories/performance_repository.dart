@@ -117,19 +117,23 @@ class PerformanceRepository {
       }
     } catch (_) {
       // Fallback: Parallel concurrent queries to KOPIS
-      final results = await Future.wait([
-        _kopisService.getPerformances(
-          stdate: stdateStr,
-          eddate: eddateStr,
-          shprfnmfct: '울산문화예술회관',
-        ),
-        _kopisService.getPerformances(
-          stdate: stdateStr,
-          eddate: eddateStr,
-          shprfnmfct: '중구문화의전당',
-        ),
-      ]);
-      combined = [...results[0], ...results[1]];
+      try {
+        final results = await Future.wait([
+          _kopisService.getPerformances(
+            stdate: stdateStr,
+            eddate: eddateStr,
+            shprfnmfct: '울산문화예술회관',
+          ),
+          _kopisService.getPerformances(
+            stdate: stdateStr,
+            eddate: eddateStr,
+            shprfnmfct: '중구문화의전당',
+          ),
+        ]);
+        combined = [...results[0], ...results[1]];
+      } catch (_) {
+        combined = [];
+      }
     }
 
     // Smart synthesis by ID and normalized date + title similarity

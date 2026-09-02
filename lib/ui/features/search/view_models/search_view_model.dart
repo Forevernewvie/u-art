@@ -4,7 +4,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:u_art/data/models/performance.dart';
 import 'package:u_art/data/repositories/performance_repository.dart';
 import 'package:u_art/data/services/kopis_service.dart';
-import 'package:u_art/data/services/junggu_crawler_service.dart';
 
 part 'search_view_model.g.dart';
 
@@ -32,15 +31,12 @@ class SearchViewModel extends _$SearchViewModel {
   Future<List<Performance>> _loadAllUlsanPerformances() async {
     final service = ref.read(uartApiServiceProvider);
     final kopisService = KopisService('534331c08630453bbd1df50692635746');
-    final jungguService = JungguCrawlerService();
     final now = DateTime.now();
     final endDate = calculateEndDate(now);
 
     final dateFormat = DateFormat('yyyy.MM.dd');
     final stdateStr = dateFormat.format(now);
     final eddateStr = dateFormat.format(endDate);
-
-    List<Performance> list = [];
 
     try {
       final list = await service
