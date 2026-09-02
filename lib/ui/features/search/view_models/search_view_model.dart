@@ -48,7 +48,35 @@ class SearchViewModel extends _$SearchViewModel {
           .timeout(const Duration(milliseconds: 1500));
       if (list.isNotEmpty) {
         final seenIds = <String>{};
-        final deduped = list.where((p) => seenIds.add(p.id)).toList();
+        final seenKeys = <String>{};
+        final deduped = <Performance>[];
+        for (final p in list) {
+          if (!seenIds.add(p.id)) continue;
+
+          final normTitle = p.title
+              .replaceAll(RegExp(r'\[.*?\]'), '')
+              .replaceAll(RegExp(r'\(.*?\)'), '')
+              .replaceAll(RegExp(r'[^a-zA-Z0-9가-힣]+'), '')
+              .toLowerCase();
+
+          bool isDuplicate = false;
+          for (final seen in seenKeys) {
+            final parts = seen.split('__');
+            final seenDate = parts[0];
+            final seenTitle = parts.length > 1 ? parts[1] : '';
+            if (seenDate == p.startDate) {
+              if (normTitle.contains(seenTitle) || seenTitle.contains(normTitle)) {
+                isDuplicate = true;
+                break;
+              }
+            }
+          }
+
+          if (!isDuplicate) {
+            seenKeys.add('${p.startDate}__$normTitle');
+            deduped.add(p);
+          }
+        }
         deduped.sort((a, b) => a.startDate.compareTo(b.startDate));
         return deduped;
       }

@@ -78,11 +78,34 @@ class PerformanceRepository {
       combined = [...ulsanArtsCenter, ...jungguArtsCenter];
     }
 
-    // Deduplicate by ID
+    // Deduplicate by ID and normalized startDate + title similarity
     final seenIds = <String>{};
+    final seenKeys = <String>{};
     final deduped = <Performance>[];
     for (final p in combined) {
-      if (seenIds.add(p.id)) {
+      if (!seenIds.add(p.id)) continue;
+
+      final normTitle = p.title
+          .replaceAll(RegExp(r'\[.*?\]'), '')
+          .replaceAll(RegExp(r'\(.*?\)'), '')
+          .replaceAll(RegExp(r'[^a-zA-Z0-9가-힣]+'), '')
+          .toLowerCase();
+
+      bool isDuplicate = false;
+      for (final seen in seenKeys) {
+        final parts = seen.split('__');
+        final seenDate = parts[0];
+        final seenTitle = parts.length > 1 ? parts[1] : '';
+        if (seenDate == p.startDate) {
+          if (normTitle.contains(seenTitle) || seenTitle.contains(normTitle)) {
+            isDuplicate = true;
+            break;
+          }
+        }
+      }
+
+      if (!isDuplicate) {
+        seenKeys.add('${p.startDate}__$normTitle');
         deduped.add(p);
       }
     }
