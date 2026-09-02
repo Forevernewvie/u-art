@@ -25,32 +25,6 @@ U-Art는 울산 시민들을 위한 **맞춤형 문화예술 공연 통합 플�
 
 ---
 
-## ⚡ Flutter SWR (Stale-While-Revalidate) 캐싱 아키텍처
-
-> [!NOTE]  
-> **U-Art는 React를 사용하지 않는 100% Flutter(Dart) 네이티브 앱입니다.**  
-> 본 프로젝트의 SWR은 HTTP 표준(RFC 5861)의 캐싱 전략을 **Flutter 순수 코드(Riverpod + SharedPreferences + Memory Cache)**로 자체 구현한 것입니다.
-
-앱 실행 시 사용자가 흰 화면이나 로딩 스피너를 기다릴 필요 없이, 이전에 기기에 저장된 캐시 데이터를 **0.001초(1ms) 만에 즉시 표시(Stale)**하고, 백그라운드(`unawaited`)에서 서버 API를 호출하여 최신 데이터를 조용히 동기화(Revalidate)합니다.
-
-```mermaid
-flowchart LR
-    Request([화면 요청 / 앱 실행]) --> L1{L1 메모리 캐시<br>30분 유효?}
-    L1 -- HIT (0ms) --> Render[화면 즉시 렌더링]
-    
-    L1 -- MISS --> L2{L2 디스크 캐시<br>SharedPreferences}
-    L2 -- HIT (1ms) --> RenderFast[캐시 데이터로 1차 즉시 렌더]
-    RenderFast --> BackgroundFetch[백그라운드 비동기 최신화 unawaited]
-    
-    L2 -- MISS --> Network[L3 백엔드 API 단일 쿼리 60ms]
-    Network --> Fallback{응답 성공?}
-    Fallback -- YES --> UpdateCache[캐시 갱신 & 화면 렌더]
-    Fallback -- NO --> KopisDirect[KOPIS Open API 직접 쿼리]
-    KopisDirect --> UpdateCache
-```
-
----
-
 ## 🏗 전체 시스템 아키텍처 (Architecture)
 
 ```mermaid
@@ -84,9 +58,39 @@ flowchart TD
     Repo -.->|백엔드 점검 시 자동 폴백| KOPIS
 ```
 
----
+<details>
+<summary><b>⚡ [자세히 보기] Flutter SWR(Stale-While-Revalidate) 3단계 캐싱 메커니즘</b></summary>
 
-## 🎯 티켓 가격 및 예매 상태 3단계 액션 버튼
+<br>
+
+> [!NOTE]  
+> **U-Art는 React를 사용하지 않는 100% Flutter(Dart) 네이티브 앱입니다.**  
+> 본 프로젝트의 SWR은 HTTP 표준(RFC 5861)의 캐싱 전략을 **Flutter 순수 코드(Riverpod + SharedPreferences + Memory Cache)**로 자체 구현한 것입니다.
+
+앱 실행 시 사용자가 흰 화면이나 로딩 스피너를 기다릴 필요 없이, 이전에 기기에 저장된 캐시 데이터를 **0.001초(1ms) 만에 즉시 표시(Stale)**하고, 백그라운드(`unawaited`)에서 서버 API를 호출하여 최신 데이터를 조용히 동기화(Revalidate)합니다.
+
+```mermaid
+flowchart LR
+    Request([화면 요청 / 앱 실행]) --> L1{L1 메모리 캐시<br>30분 유효?}
+    L1 -- HIT (0ms) --> Render[화면 즉시 렌더링]
+    
+    L1 -- MISS --> L2{L2 디스크 캐시<br>SharedPreferences}
+    L2 -- HIT (1ms) --> RenderFast[캐시 데이터로 1차 즉시 렌더]
+    RenderFast --> BackgroundFetch[백그라운드 비동기 최신화 unawaited]
+    
+    L2 -- MISS --> Network[L3 백엔드 API 단일 쿼리 60ms]
+    Network --> Fallback{응답 성공?}
+    Fallback -- YES --> UpdateCache[캐시 갱신 & 화면 렌더]
+    Fallback -- NO --> KopisDirect[KOPIS Open API 직접 쿼리]
+    KopisDirect --> UpdateCache
+```
+
+</details>
+
+<details>
+<summary><b>🎯 [자세히 보기] 티켓 가격 및 예매 상태 3단계 액션 버튼 분기 로직</b></summary>
+
+<br>
 
 공연 상태에 따라 사용자에게 명확하고 혼란 없는 사용자 경험(UX)을 제공합니다.
 
@@ -102,6 +106,44 @@ flowchart TD
     
     CheckLinks -- NO --> NoLinks["🔵 [상태 3: 예매처 미등록 / 현장발권]<br>• '현장 발권 / 공연장 문의 요망' 안내 버튼<br>• 탭 시 공연장 안내 다이얼로그 팝업 노출"]
 ```
+
+</details>
+
+<details>
+<summary><b>🔄 [자세히 보기] 종단 간 데이터 수집 & 스마트 머지 파이프라인 시퀀스</b></summary>
+
+<br>
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Venues as 울산 공연장 웹
+    participant Kopis as KOPIS Open API
+    participant Crawler as Python 크롤러 & Smart Merge
+    participant DB as 백엔드 (Node.js + MongoDB)
+    participant AppRepo as Flutter PerformanceRepository
+    participant UI as Flutter UI (Home/Search/Detail)
+
+    Crawler->>Venues: 중구문화의전당 실시간 예매/매진 현황 크롤링
+    Crawler->>Kopis: 울산 지역 공연 목록(/pblprfr) 조회
+    Crawler->>Crawler: 제목 특수문자 정규화 및 날짜 매칭으로 중복 데이터 합성
+    Crawler->>DB: 통합 데이터 영구 저장
+
+    UI->>AppRepo: 공연 목록 요청
+    AppRepo->>AppRepo: L1 메모리 캐시 (0ms) / L2 디스크 캐시 (1ms)
+    AppRepo->>DB: L3 백엔드 단일 통합 쿼리 (60ms)
+    AppRepo->>AppRepo: synthesizePerformances() (KOPIS 포스터 + 크롤러 상세홀/매진 합성)
+    AppRepo->>UI: 단일 진실 공급원(SSOT) 정렬 데이터 제공
+
+    UI->>AppRepo: getPerformanceDetail(id)
+    alt 가격 누락 또는 예매처 미등록 시
+        AppRepo->>Kopis: KOPIS 상세 API(/pblprfr/{mt20id}) 실시간 조회
+        AppRepo->>AppRepo: R/S석 실제 정가 및 공식 예매처 자동 보강
+    end
+    AppRepo->>UI: 3단계 버튼 UI 제공 (매진 / 예매하기 / 현장발권 안내)
+```
+
+</details>
 
 ---
 
