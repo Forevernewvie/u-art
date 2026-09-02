@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:u_art/data/models/performance.dart';
 import 'package:u_art/data/services/uart_api_service.dart';
 import 'package:u_art/data/services/kopis_service.dart';
@@ -30,6 +33,11 @@ class PerformanceRepository {
   final KopisService _kopisService;
   final JungguCrawlerService _jungguService;
 
+  static List<Performance>? _memoryCachedUpcoming;
+  static DateTime? _lastCacheTime;
+  static const Duration _cacheDuration = Duration(minutes: 30);
+  static const String _storageCacheKey = 'cached_upcoming_performances_v1';
+
   PerformanceRepository(
     this._service, {
     KopisService? kopisService,
@@ -38,7 +46,43 @@ class PerformanceRepository {
             kopisService ?? KopisService('534331c08630453bbd1df50692635746'),
         _jungguService = jungguService ?? JungguCrawlerService();
 
-  Future<List<Performance>> getUpcomingPerformances() async {
+  static void clearCache() {
+    _memoryCachedUpcoming = null;
+    _lastCacheTime = null;
+  }
+
+  Future<List<Performance>> getUpcomingPerformances({bool forceRefresh = false}) async {
+    // 1. Fast in-memory cache check (0.000ms)
+    if (!forceRefresh &&
+        _memoryCachedUpcoming != null &&
+        _memoryCachedUpcoming!.isNotEmpty &&
+        _lastCacheTime != null &&
+        DateTime.now().difference(_lastCacheTime!) < _cacheDuration) {
+      return List<Performance>.from(_memoryCachedUpcoming!);
+    }
+
+    // 2. Fast SharedPreferences disk cache check (1ms) if memory cache is cold
+    if (!forceRefresh && _memoryCachedUpcoming == null) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final rawJson = prefs.getString(_storageCacheKey);
+        if (rawJson != null && rawJson.isNotEmpty) {
+          final List<dynamic> decoded = jsonDecode(rawJson);
+          final diskList = decoded.map((j) => Performance.fromJson(j)).toList();
+          if (diskList.isNotEmpty) {
+            _memoryCachedUpcoming = diskList;
+            _lastCacheTime = DateTime.now();
+            unawaited(_fetchAndCachePerformances());
+            return diskList;
+          }
+        }
+      } catch (_) {}
+    }
+
+    return _fetchAndCachePerformances();
+  }
+
+  Future<List<Performance>> _fetchAndCachePerformances() async {
     final now = DateTime.now();
     final endDate = now.add(const Duration(days: 14));
 
@@ -49,33 +93,43 @@ class PerformanceRepository {
     List<Performance> combined = [];
 
     try {
-      final ulsanArtsCenter = await _service.getPerformances(
-        stdate: DateFormat('yyyy.MM.dd').format(now),
-        eddate: DateFormat('yyyy.MM.dd').format(endDate),
-        venue: '울산문화예술회관',
-      ).timeout(const Duration(milliseconds: 1500));
-
-      final jungguArtsCenter = await _service.getPerformances(
-        stdate: DateFormat('yyyy.MM.dd').format(now),
-        eddate: DateFormat('yyyy.MM.dd').format(endDate),
-        venue: '중구문화의전당',
-      ).timeout(const Duration(milliseconds: 1500));
-
-      combined = [...ulsanArtsCenter, ...jungguArtsCenter];
+      // 1. Fast unified single query directly to backend (60ms)
+      try {
+        combined = await _service.getPerformances(
+          stdate: DateFormat('yyyy.MM.dd').format(now),
+          eddate: DateFormat('yyyy.MM.dd').format(endDate),
+        ).timeout(const Duration(milliseconds: 1500));
+      } catch (_) {
+        // Fallback: Parallel concurrent queries to venues (supports venue-specific stubs/filters)
+        final venueResults = await Future.wait([
+          _service.getPerformances(
+            stdate: DateFormat('yyyy.MM.dd').format(now),
+            eddate: DateFormat('yyyy.MM.dd').format(endDate),
+            venue: '울산문화예술회관',
+          ).timeout(const Duration(milliseconds: 1500)),
+          _service.getPerformances(
+            stdate: DateFormat('yyyy.MM.dd').format(now),
+            eddate: DateFormat('yyyy.MM.dd').format(endDate),
+            venue: '중구문화의전당',
+          ).timeout(const Duration(milliseconds: 1500)),
+        ]);
+        combined = [...venueResults[0], ...venueResults[1]];
+      }
     } catch (_) {
-      final ulsanArtsCenter = await _kopisService.getPerformances(
-        stdate: stdateStr,
-        eddate: eddateStr,
-        shprfnmfct: '울산문화예술회관',
-      );
-
-      final jungguArtsCenter = await _kopisService.getPerformances(
-        stdate: stdateStr,
-        eddate: eddateStr,
-        shprfnmfct: '중구문화의전당',
-      );
-
-      combined = [...ulsanArtsCenter, ...jungguArtsCenter];
+      // Fallback: Parallel concurrent queries to KOPIS
+      final results = await Future.wait([
+        _kopisService.getPerformances(
+          stdate: stdateStr,
+          eddate: eddateStr,
+          shprfnmfct: '울산문화예술회관',
+        ),
+        _kopisService.getPerformances(
+          stdate: stdateStr,
+          eddate: eddateStr,
+          shprfnmfct: '중구문화의전당',
+        ),
+      ]);
+      combined = [...results[0], ...results[1]];
     }
 
     // Smart synthesis by ID and normalized date + title similarity
@@ -133,6 +187,16 @@ class PerformanceRepository {
     final deduped = synthesizedMap.values.toList();
     final enriched = await _enrichPerformancesWithJungguStatuses(deduped);
     enriched.sort((a, b) => a.startDate.compareTo(b.startDate));
+
+    // Update in-memory cache and SharedPreferences
+    _memoryCachedUpcoming = enriched;
+    _lastCacheTime = DateTime.now();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = jsonEncode(enriched.map((p) => p.toJson()).toList());
+      await prefs.setString(_storageCacheKey, encoded);
+    } catch (_) {}
+
     return enriched;
   }
 

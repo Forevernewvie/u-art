@@ -36,185 +36,172 @@ class HomeScreen extends ConsumerWidget {
               .toList(); // Top 5 for carousel
           final listItems = performances; // All 14 days
 
-          return CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: CarouselSlider(
-                    options: CarouselOptions(
-                      height: 450,
-                      enlargeCenterPage: true,
-                      viewportFraction: 0.8,
-                      autoPlay: true,
-                      enableInfiniteScroll: false,
-                    ),
-                    items: carouselItems.map((perf) {
-                      return GestureDetector(
-                        onTap: () => context.pushNamed(
-                          'home_detail',
-                          pathParameters: {'id': perf.id},
-                        ),
-                        child: Hero(
-                          tag: 'poster_${perf.id}',
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                CachedNetworkImage(
-                                  imageUrl: perf.posterUrl,
-                                  fit: BoxFit.cover,
-                                  errorWidget: (context, url, error) =>
-                                      const Icon(Icons.error),
-                                ),
-                                if (perf.isSoldOut)
-                                  const SoldOutStamp(
-                                    size: StampSize.regular,
+          return RefreshIndicator(
+            onRefresh: () => ref.read(homeViewModelProvider.notifier).refresh(),
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: CarouselSlider(
+                      options: CarouselOptions(
+                        height: 450,
+                        enlargeCenterPage: true,
+                        viewportFraction: 0.8,
+                        autoPlay: true,
+                        enableInfiniteScroll: false,
+                      ),
+                      items: carouselItems.map((perf) {
+                        return GestureDetector(
+                          onTap: () => context.pushNamed(
+                            'home_detail',
+                            pathParameters: {'id': perf.id},
+                          ),
+                          child: Hero(
+                            tag: 'poster_${perf.id}',
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  CachedNetworkImage(
+                                    imageUrl: perf.posterUrl,
+                                    fit: BoxFit.cover,
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error),
                                   ),
-                                Positioned(
-                                  bottom: 0,
-                                  left: 0,
-                                  right: 0,
-                                  child: ClipRect(
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(
-                                        sigmaX: 10,
-                                        sigmaY: 10,
-                                      ),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(16),
-                                        color: Colors.black.withValues(
-                                          alpha: 0.4,
+                                  if (perf.isSoldOut)
+                                    const SoldOutStamp(
+                                      size: StampSize.regular,
+                                    ),
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: ClipRect(
+                                      child: BackdropFilter(
+                                        filter: ImageFilter.blur(
+                                          sigmaX: 10,
+                                          sigmaY: 10,
                                         ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              perf.genre,
-                                              style: const TextStyle(
-                                                color: Colors.white70,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 12,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.4,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                perf.genre,
+                                                style: const TextStyle(
+                                                  color: Colors.white70,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 12,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              perf.title,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18,
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                perf.title,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 18,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              '${perf.startDate} ~ ${perf.endDate} | ${perf.venue}',
-                                              style: const TextStyle(
-                                                color: Colors.white60,
-                                                fontSize: 12,
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                '${perf.startDate} ~ ${perf.endDate} | ${perf.venue}',
+                                                style: const TextStyle(
+                                                  color: Colors.white60,
+                                                  fontSize: 12,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Text(
-                    '최근 14일간 공연',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                        );
+                      }).toList(),
                     ),
                   ),
                 ),
-              ),
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final perf = listItems[index];
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
                     ),
-                    leading: Hero(
-                      tag: 'list_poster_${perf.id}',
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Stack(
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: perf.posterUrl,
-                              width: 60,
-                              height: 80,
-                              fit: BoxFit.cover,
-                              errorWidget: (context, url, error) =>
-                                  const Icon(Icons.error),
-                            ),
-                            if (perf.isSoldOut)
-                              const Positioned.fill(
-                                child: SoldOutStamp(
-                                  size: StampSize.compact,
-                                  showOverlay: false,
-                                ),
-                              ),
-                          ],
-                        ),
+                    child: Text(
+                      '최근 14일간 공연',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    title: Text(
-                      perf.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(perf.venue),
-                        Text(
-                          '${perf.startDate} ~ ${perf.endDate}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.white54,
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final perf = listItems[index];
+                    return ListTile(
+                      leading: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: CachedNetworkImage(
+                              imageUrl: perf.posterUrl,
+                              width: 50,
+                              height: 70,
+                              fit: BoxFit.cover,
+                              errorWidget: (context, url, error) =>
+                                  const Icon(Icons.broken_image),
+                            ),
                           ),
+                          if (perf.isSoldOut)
+                            const Positioned(
+                              top: -4,
+                              right: -4,
+                              child: SoldOutStamp(size: StampSize.compact),
+                            ),
+                        ],
+                      ),
+                      title: Text(
+                        perf.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          decoration: perf.isSoldOut
+                              ? TextDecoration.lineThrough
+                              : null,
+                          color: perf.isSoldOut ? Colors.grey : null,
                         ),
-                      ],
-                    ),
-                    trailing: const Icon(
-                      Icons.chevron_right,
-                      color: Colors.white54,
-                    ),
-                    onTap: () => context.pushNamed(
-                      'home_detail',
-                      pathParameters: {'id': perf.id},
-                    ),
-                  );
-                }, childCount: listItems.length),
-              ),
-              const SliverToBoxAdapter(child: KopisDisclaimer()),
-            ],
+                      ),
+                      subtitle: Text(
+                        '${perf.venue}\n${perf.startDate} ~ ${perf.endDate}',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.pushNamed(
+                        'home_detail',
+                        pathParameters: {'id': perf.id},
+                      ),
+                    );
+                  }, childCount: listItems.length),
+                ),
+                const SliverToBoxAdapter(child: KopisDisclaimer()),
+              ],
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
