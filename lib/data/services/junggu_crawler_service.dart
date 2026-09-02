@@ -6,7 +6,8 @@ class JungguCrawlerService {
   static DateTime? _lastFetchTime;
   static const Duration _cacheDuration = Duration(minutes: 30);
 
-  JungguCrawlerService({http.Client? client}) : _client = client ?? http.Client();
+  JungguCrawlerService({http.Client? client})
+    : _client = client ?? http.Client();
 
   /// Clears in-memory cache for testing or manual refresh
   static void clearCache() {
@@ -16,7 +17,9 @@ class JungguCrawlerService {
 
   /// Fetches real-time performance statuses directly from Junggu Arts Center website.
   /// Returns a map of normalized performance titles to their sold-out boolean status.
-  Future<Map<String, bool>> fetchSoldOutStatuses({bool forceRefresh = false}) async {
+  Future<Map<String, bool>> fetchSoldOutStatuses({
+    bool forceRefresh = false,
+  }) async {
     if (!forceRefresh &&
         _cachedStatuses != null &&
         _lastFetchTime != null &&
@@ -27,13 +30,15 @@ class JungguCrawlerService {
     final statuses = <String, bool>{};
 
     try {
-      final response = await _client.get(
-        Uri.parse('https://artscenter.junggu.ulsan.kr/01_Menu/01.do'),
-        headers: {
-          'User-Agent':
-              'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
-        },
-      ).timeout(const Duration(seconds: 4));
+      final response = await _client
+          .get(
+            Uri.parse('https://artscenter.junggu.ulsan.kr/01_Menu/01.do'),
+            headers: {
+              'User-Agent':
+                  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+            },
+          )
+          .timeout(const Duration(seconds: 4));
 
       if (response.statusCode != 200) {
         return statuses;
@@ -42,7 +47,10 @@ class JungguCrawlerService {
       final html = response.body;
 
       // Extract <li> elements inside ul.board_list
-      final liRegex = RegExp(r'<li[^>]*>([\s\S]*?)<\/li>', caseSensitive: false);
+      final liRegex = RegExp(
+        r'<li[^>]*>([\s\S]*?)<\/li>',
+        caseSensitive: false,
+      );
       final titleRegex = RegExp(
         r'class="title_info"[^>]*>([^<]+)<\/p>',
         caseSensitive: false,
@@ -69,11 +77,13 @@ class JungguCrawlerService {
             liHtml.contains('마감');
 
         // Verified sold out performances in ticketing system
-        final isKnownSoldOut = rawTitle.contains('긴긴밤') ||
+        final isKnownSoldOut =
+            rawTitle.contains('긴긴밤') ||
             rawTitle.contains('양파') ||
             rawTitle.contains('미녀와');
 
-        final isSoldOut = isSoldOutText || (isPaid && !hasBuyBtn) || isKnownSoldOut;
+        final isSoldOut =
+            isSoldOutText || (isPaid && !hasBuyBtn) || isKnownSoldOut;
 
         final normTitle = _normalize(rawTitle);
         statuses[normTitle] = isSoldOut;
@@ -121,8 +131,10 @@ class JungguCrawlerService {
         final normSource = entry.key;
         if (normTarget.contains(normSource) ||
             normSource.contains(normTarget) ||
-            (normTarget.length >= 4 && normSource.contains(normTarget.substring(0, 4))) ||
-            (normSource.length >= 4 && normTarget.contains(normSource.substring(0, 4)))) {
+            (normTarget.length >= 4 &&
+                normSource.contains(normTarget.substring(0, 4))) ||
+            (normSource.length >= 4 &&
+                normTarget.contains(normSource.substring(0, 4)))) {
           return true;
         }
       }

@@ -14,9 +14,7 @@ part 'performance_repository.g.dart';
 @riverpod
 UartApiService uartApiService(Ref ref) {
   // Linux Server backend endpoint
-  return UartApiService(
-    'http://172.30.1.43:3000',
-  );
+  return UartApiService('http://172.30.1.43:3000');
 }
 
 @riverpod
@@ -42,16 +40,18 @@ class PerformanceRepository {
     this._service, {
     KopisService? kopisService,
     JungguCrawlerService? jungguService,
-  })  : _kopisService =
-            kopisService ?? KopisService('534331c08630453bbd1df50692635746'),
-        _jungguService = jungguService ?? JungguCrawlerService();
+  }) : _kopisService =
+           kopisService ?? KopisService('534331c08630453bbd1df50692635746'),
+       _jungguService = jungguService ?? JungguCrawlerService();
 
   static void clearCache() {
     _memoryCachedUpcoming = null;
     _lastCacheTime = null;
   }
 
-  Future<List<Performance>> getUpcomingPerformances({bool forceRefresh = false}) async {
+  Future<List<Performance>> getUpcomingPerformances({
+    bool forceRefresh = false,
+  }) async {
     // 1. Fast in-memory cache check (0.000ms)
     if (!forceRefresh &&
         _memoryCachedUpcoming != null &&
@@ -95,23 +95,29 @@ class PerformanceRepository {
     try {
       // 1. Fast unified single query directly to backend (60ms)
       try {
-        combined = await _service.getPerformances(
-          stdate: DateFormat('yyyy.MM.dd').format(now),
-          eddate: DateFormat('yyyy.MM.dd').format(endDate),
-        ).timeout(const Duration(milliseconds: 1500));
+        combined = await _service
+            .getPerformances(
+              stdate: DateFormat('yyyy.MM.dd').format(now),
+              eddate: DateFormat('yyyy.MM.dd').format(endDate),
+            )
+            .timeout(const Duration(milliseconds: 1500));
       } catch (_) {
         // Fallback: Parallel concurrent queries to venues (supports venue-specific stubs/filters)
         final venueResults = await Future.wait([
-          _service.getPerformances(
-            stdate: DateFormat('yyyy.MM.dd').format(now),
-            eddate: DateFormat('yyyy.MM.dd').format(endDate),
-            venue: '울산문화예술회관',
-          ).timeout(const Duration(milliseconds: 1500)),
-          _service.getPerformances(
-            stdate: DateFormat('yyyy.MM.dd').format(now),
-            eddate: DateFormat('yyyy.MM.dd').format(endDate),
-            venue: '중구문화의전당',
-          ).timeout(const Duration(milliseconds: 1500)),
+          _service
+              .getPerformances(
+                stdate: DateFormat('yyyy.MM.dd').format(now),
+                eddate: DateFormat('yyyy.MM.dd').format(endDate),
+                venue: '울산문화예술회관',
+              )
+              .timeout(const Duration(milliseconds: 1500)),
+          _service
+              .getPerformances(
+                stdate: DateFormat('yyyy.MM.dd').format(now),
+                eddate: DateFormat('yyyy.MM.dd').format(endDate),
+                venue: '중구문화의전당',
+              )
+              .timeout(const Duration(milliseconds: 1500)),
         ]);
         combined = [...venueResults[0], ...venueResults[1]];
       }
@@ -155,7 +161,8 @@ class PerformanceRepository {
         final existingDate = parts[0];
         final existingTitle = parts.length > 1 ? parts[1] : '';
         if (existingDate == p.startDate) {
-          if (normTitle.contains(existingTitle) || existingTitle.contains(normTitle)) {
+          if (normTitle.contains(existingTitle) ||
+              existingTitle.contains(normTitle)) {
             matchedKey = existingKey;
             break;
           }
@@ -170,7 +177,9 @@ class PerformanceRepository {
         final crawledItem = isPNewKopis ? existing : p;
 
         final isSoldOut = kopisItem.isSoldOut || crawledItem.isSoldOut;
-        final detailedVenue = crawledItem.venue.contains('(') ? crawledItem.venue : kopisItem.venue;
+        final detailedVenue = crawledItem.venue.contains('(')
+            ? crawledItem.venue
+            : kopisItem.venue;
 
         synthesizedMap[matchedKey] = Performance(
           id: kopisItem.id,
@@ -178,10 +187,18 @@ class PerformanceRepository {
           startDate: kopisItem.startDate,
           endDate: kopisItem.endDate,
           venue: detailedVenue,
-          posterUrl: kopisItem.posterUrl.isNotEmpty ? kopisItem.posterUrl : crawledItem.posterUrl,
-          genre: kopisItem.genre.isNotEmpty ? kopisItem.genre : crawledItem.genre,
-          state: isSoldOut ? '매진' : (kopisItem.state.isNotEmpty ? kopisItem.state : '공연예정'),
-          district: kopisItem.district != '전체' ? kopisItem.district : crawledItem.district,
+          posterUrl: kopisItem.posterUrl.isNotEmpty
+              ? kopisItem.posterUrl
+              : crawledItem.posterUrl,
+          genre: kopisItem.genre.isNotEmpty
+              ? kopisItem.genre
+              : crawledItem.genre,
+          state: isSoldOut
+              ? '매진'
+              : (kopisItem.state.isNotEmpty ? kopisItem.state : '공연예정'),
+          district: kopisItem.district != '전체'
+              ? kopisItem.district
+              : crawledItem.district,
         );
       } else {
         synthesizedMap['${p.startDate}__$normTitle'] = p;
@@ -254,7 +271,10 @@ class PerformanceRepository {
         detail.venue.contains('달빛마루')) {
       try {
         final statuses = await _jungguService.fetchSoldOutStatuses();
-        final isSoldOut = JungguCrawlerService.isTitleSoldOut(detail.title, statuses);
+        final isSoldOut = JungguCrawlerService.isTitleSoldOut(
+          detail.title,
+          statuses,
+        );
 
         // Ensure price is accurate for known performances
         var price = detail.price;
@@ -268,11 +288,13 @@ class PerformanceRepository {
             BookingLink(
               name: '중구문화의전당 공식 예매',
               url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
-            )
+            ),
           ];
         }
 
-        if (isSoldOut || price != detail.price || links.length != detail.bookingLinks.length) {
+        if (isSoldOut ||
+            price != detail.price ||
+            links.length != detail.bookingLinks.length) {
           return PerformanceDetail(
             id: detail.id,
             title: detail.title,

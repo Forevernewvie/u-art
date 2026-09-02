@@ -67,9 +67,7 @@ class DetailScreen extends ConsumerWidget {
                                 const Icon(Icons.error),
                           ),
                           if (detail.isSoldOut)
-                            const SoldOutStamp(
-                              size: StampSize.large,
-                            ),
+                            const SoldOutStamp(size: StampSize.large),
                         ],
                       ),
                     ),

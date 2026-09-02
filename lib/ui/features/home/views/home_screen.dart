@@ -71,9 +71,7 @@ class HomeScreen extends ConsumerWidget {
                                         const Icon(Icons.error),
                                   ),
                                   if (perf.isSoldOut)
-                                    const SoldOutStamp(
-                                      size: StampSize.regular,
-                                    ),
+                                    const SoldOutStamp(size: StampSize.regular),
                                   Positioned(
                                     bottom: 0,
                                     left: 0,

@@ -31,7 +31,8 @@ class Performance {
 
   factory Performance.fromJson(Map<String, dynamic> json) {
     final stateStr = json['state']?.toString() ?? '';
-    final isSold = json['isSoldOut'] == true ||
+    final isSold =
+        json['isSoldOut'] == true ||
         json['soldOut'] == true ||
         stateStr.contains('매진') ||
         stateStr.toLowerCase().contains('sold out') ||
@@ -46,7 +47,11 @@ class Performance {
       venue: json['venue'] ?? '',
       posterUrl: json['posterUrl'] ?? '',
       genre: json['genre'] ?? '',
-      state: isSold && !stateStr.contains('매진') && !stateStr.contains('마감') && stateStr != '공연완료'
+      state:
+          isSold &&
+              !stateStr.contains('매진') &&
+              !stateStr.contains('마감') &&
+              stateStr != '공연완료'
           ? '매진'
           : (stateStr.isNotEmpty ? stateStr : (isSold ? '매진' : '공연예정')),
       district: json['district'] ?? '전체',
@@ -144,7 +149,8 @@ class PerformanceDetail {
     }
 
     final stateStr = json['state']?.toString() ?? '';
-    final isSold = json['isSoldOut'] == true ||
+    final isSold =
+        json['isSoldOut'] == true ||
         json['soldOut'] == true ||
         stateStr.contains('매진') ||
         stateStr.toLowerCase().contains('sold out') ||
@@ -165,7 +171,11 @@ class PerformanceDetail {
       price: json['price'] ?? '무료',
       posterUrl: json['posterUrl'] ?? '',
       genre: json['genre'] ?? '',
-      state: isSold && !stateStr.contains('매진') && !stateStr.contains('마감') && stateStr != '공연완료'
+      state:
+          isSold &&
+              !stateStr.contains('매진') &&
+              !stateStr.contains('마감') &&
+              stateStr != '공연완료'
           ? '매진'
           : (stateStr.isNotEmpty ? stateStr : (isSold ? '매진' : '공연예정')),
       district: json['district'] ?? '전체',

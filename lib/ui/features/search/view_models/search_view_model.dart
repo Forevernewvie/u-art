@@ -61,7 +61,8 @@ class SearchViewModel extends _$SearchViewModel {
             final existingDate = parts[0];
             final existingTitle = parts.length > 1 ? parts[1] : '';
             if (existingDate == p.startDate) {
-              if (normTitle.contains(existingTitle) || existingTitle.contains(normTitle)) {
+              if (normTitle.contains(existingTitle) ||
+                  existingTitle.contains(normTitle)) {
                 matchedKey = existingKey;
                 break;
               }
@@ -75,7 +76,9 @@ class SearchViewModel extends _$SearchViewModel {
             final crawledItem = isPNewKopis ? existing : p;
 
             final isSoldOut = kopisItem.isSoldOut || crawledItem.isSoldOut;
-            final detailedVenue = crawledItem.venue.contains('(') ? crawledItem.venue : kopisItem.venue;
+            final detailedVenue = crawledItem.venue.contains('(')
+                ? crawledItem.venue
+                : kopisItem.venue;
 
             synthesizedMap[matchedKey] = Performance(
               id: kopisItem.id,
@@ -83,10 +86,18 @@ class SearchViewModel extends _$SearchViewModel {
               startDate: kopisItem.startDate,
               endDate: kopisItem.endDate,
               venue: detailedVenue,
-              posterUrl: kopisItem.posterUrl.isNotEmpty ? kopisItem.posterUrl : crawledItem.posterUrl,
-              genre: kopisItem.genre.isNotEmpty ? kopisItem.genre : crawledItem.genre,
-              state: isSoldOut ? '매진' : (kopisItem.state.isNotEmpty ? kopisItem.state : '공연예정'),
-              district: kopisItem.district != '전체' ? kopisItem.district : crawledItem.district,
+              posterUrl: kopisItem.posterUrl.isNotEmpty
+                  ? kopisItem.posterUrl
+                  : crawledItem.posterUrl,
+              genre: kopisItem.genre.isNotEmpty
+                  ? kopisItem.genre
+                  : crawledItem.genre,
+              state: isSoldOut
+                  ? '매진'
+                  : (kopisItem.state.isNotEmpty ? kopisItem.state : '공연예정'),
+              district: kopisItem.district != '전체'
+                  ? kopisItem.district
+                  : crawledItem.district,
             );
           } else {
             synthesizedMap['${p.startDate}__$normTitle'] = p;
@@ -96,8 +107,12 @@ class SearchViewModel extends _$SearchViewModel {
         final deduped = synthesizedMap.values.toList();
         for (var i = 0; i < deduped.length; i++) {
           final perf = deduped[i];
-          if (perf.venue.contains('중구') || perf.venue.contains('함월홀') || perf.venue.contains('달빛마루')) {
-            if (perf.title.contains('긴긴밤') || perf.title.contains('양파') || perf.title.contains('미녀와')) {
+          if (perf.venue.contains('중구') ||
+              perf.venue.contains('함월홀') ||
+              perf.venue.contains('달빛마루')) {
+            if (perf.title.contains('긴긴밤') ||
+                perf.title.contains('양파') ||
+                perf.title.contains('미녀와')) {
               deduped[i] = Performance(
                 id: perf.id,
                 title: perf.title,
@@ -129,7 +144,9 @@ class SearchViewModel extends _$SearchViewModel {
       if (hasJunggu) {
         final enriched = list.map((perf) {
           if (perf.venue.contains('중구') &&
-              (perf.title.contains('긴긴밤') || perf.title.contains('양파') || perf.title.contains('미녀와'))) {
+              (perf.title.contains('긴긴밤') ||
+                  perf.title.contains('양파') ||
+                  perf.title.contains('미녀와'))) {
             return Performance(
               id: perf.id,
               title: perf.title,
