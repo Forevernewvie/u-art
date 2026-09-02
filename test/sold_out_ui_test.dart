@@ -76,11 +76,7 @@ void main() {
       final perf1 = Performance.fromJson(json1);
       expect(perf1.isSoldOut, isTrue);
 
-      final json2 = {
-        'id': 'j2',
-        'title': '마감 공연',
-        'state': '예매마감',
-      };
+      final json2 = {'id': 'j2', 'title': '마감 공연', 'state': '예매마감'};
       final perf2 = Performance.fromJson(json2);
       expect(perf2.isSoldOut, isTrue);
 
@@ -96,56 +92,57 @@ void main() {
   });
 
   group('DetailScreen Sold Out UI Tests', () {
-    testWidgets('DetailScreen displays disabled button and SoldOutStamp for sold out performance', (
-      tester,
-    ) async {
-      final soldOutDetail = PerformanceDetail(
-        id: 'detail_soldout',
-        title: '매진된 인기 콘서트',
-        startDate: '2026.09.10',
-        endDate: '2026.09.10',
-        venue: '울산문화예술회관 대공연장',
-        cast: '유명 가수',
-        runtime: '120분',
-        timeGuidance: '오후 7시',
-        ageLimit: '만 7세 이상',
-        price: '전석 50,000원',
-        posterUrl: '',
-        genre: '콘서트',
-        state: '매진',
-        district: '남구',
-        bookingLinks: [BookingLink(name: '인터파크', url: 'https://interpark.com')],
-        detailImages: [],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            detailViewModelProvider(
-              'detail_soldout',
-            ).overrideWith(() => MockDetailViewModel(soldOutDetail)),
-            bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
+    testWidgets(
+      'DetailScreen displays disabled button and SoldOutStamp for sold out performance',
+      (tester) async {
+        final soldOutDetail = PerformanceDetail(
+          id: 'detail_soldout',
+          title: '매진된 인기 콘서트',
+          startDate: '2026.09.10',
+          endDate: '2026.09.10',
+          venue: '울산문화예술회관 대공연장',
+          cast: '유명 가수',
+          runtime: '120분',
+          timeGuidance: '오후 7시',
+          ageLimit: '만 7세 이상',
+          price: '전석 50,000원',
+          posterUrl: '',
+          genre: '콘서트',
+          state: '매진',
+          district: '남구',
+          bookingLinks: [
+            BookingLink(name: '인터파크', url: 'https://interpark.com'),
           ],
-          child: const MaterialApp(
-            home: DetailScreen(id: 'detail_soldout'),
+          detailImages: [],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              detailViewModelProvider(
+                'detail_soldout',
+              ).overrideWith(() => MockDetailViewModel(soldOutDetail)),
+              bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
+            ],
+            child: const MaterialApp(home: DetailScreen(id: 'detail_soldout')),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Check for Sold Out label on booking button
-      expect(find.text('매진 (Sold Out)'), findsOneWidget);
+        // Check for Sold Out label on booking button
+        expect(find.text('매진 (Sold Out)'), findsOneWidget);
 
-      // Verify ElevatedButton is disabled (onPressed is null)
-      final elevatedButton = tester.widget<ElevatedButton>(
-        find.byType(ElevatedButton),
-      );
-      expect(elevatedButton.onPressed, isNull);
+        // Verify ElevatedButton is disabled (onPressed is null)
+        final elevatedButton = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
+        expect(elevatedButton.onPressed, isNull);
 
-      // Verify SoldOutStamp is rendered on poster
-      expect(find.text('SOLD OUT'), findsOneWidget);
-    });
+        // Verify SoldOutStamp is rendered on poster
+        expect(find.text('SOLD OUT'), findsOneWidget);
+      },
+    );
   });
 
   group('SoldOutStamp Widget Tests', () {

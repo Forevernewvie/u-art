@@ -38,60 +38,98 @@ void main() {
       expect(restored.district, original.district);
     });
 
-    test('fromJson handles null and missing fields gracefully with safe fallbacks', () {
-      final corruptedJson = <String, dynamic>{
-        'id': null,
-        'title': null,
-        'startDate': null,
-        'state': null,
-      };
+    test(
+      'fromJson handles null and missing fields gracefully with safe fallbacks',
+      () {
+        final corruptedJson = <String, dynamic>{
+          'id': null,
+          'title': null,
+          'startDate': null,
+          'state': null,
+        };
 
-      final perf = Performance.fromJson(corruptedJson);
-      expect(perf.id, isEmpty);
-      expect(perf.title, isEmpty);
-      expect(perf.startDate, isEmpty);
-      expect(perf.state, '공연예정');
-      expect(perf.district, '전체');
-      expect(perf.isSoldOut, isFalse);
-    });
+        final perf = Performance.fromJson(corruptedJson);
+        expect(perf.id, isEmpty);
+        expect(perf.title, isEmpty);
+        expect(perf.startDate, isEmpty);
+        expect(perf.state, '공연예정');
+        expect(perf.district, '전체');
+        expect(perf.isSoldOut, isFalse);
+      },
+    );
 
     test('isSoldOut detects various sold-out keywords across cases', () {
       expect(
         Performance(
-          id: '1', title: 'T', startDate: 'S', endDate: 'E',
-          venue: 'V', posterUrl: '', genre: 'G', state: '매진', district: 'D',
+          id: '1',
+          title: 'T',
+          startDate: 'S',
+          endDate: 'E',
+          venue: 'V',
+          posterUrl: '',
+          genre: 'G',
+          state: '매진',
+          district: 'D',
         ).isSoldOut,
         isTrue,
       );
 
       expect(
         Performance(
-          id: '2', title: 'T', startDate: 'S', endDate: 'E',
-          venue: 'V', posterUrl: '', genre: 'G', state: 'SOLD OUT', district: 'D',
+          id: '2',
+          title: 'T',
+          startDate: 'S',
+          endDate: 'E',
+          venue: 'V',
+          posterUrl: '',
+          genre: 'G',
+          state: 'SOLD OUT',
+          district: 'D',
         ).isSoldOut,
         isTrue,
       );
 
       expect(
         Performance(
-          id: '3', title: 'T', startDate: 'S', endDate: 'E',
-          venue: 'V', posterUrl: '', genre: 'G', state: '공연완료', district: 'D',
+          id: '3',
+          title: 'T',
+          startDate: 'S',
+          endDate: 'E',
+          venue: 'V',
+          posterUrl: '',
+          genre: 'G',
+          state: '공연완료',
+          district: 'D',
         ).isSoldOut,
         isTrue,
       );
 
       expect(
         Performance(
-          id: '4', title: 'T', startDate: 'S', endDate: 'E',
-          venue: 'V', posterUrl: '', genre: 'G', state: '예매마감', district: 'D',
+          id: '4',
+          title: 'T',
+          startDate: 'S',
+          endDate: 'E',
+          venue: 'V',
+          posterUrl: '',
+          genre: 'G',
+          state: '예매마감',
+          district: 'D',
         ).isSoldOut,
         isTrue,
       );
 
       expect(
         Performance(
-          id: '5', title: 'T', startDate: 'S', endDate: 'E',
-          venue: 'V', posterUrl: '', genre: 'G', state: '공연중', district: 'D',
+          id: '5',
+          title: 'T',
+          startDate: 'S',
+          endDate: 'E',
+          venue: 'V',
+          posterUrl: '',
+          genre: 'G',
+          state: '공연중',
+          district: 'D',
         ).isSoldOut,
         isFalse,
       );
@@ -106,73 +144,76 @@ void main() {
     setUp(() {
       mockService = MockUartApiService();
       mockKopis = MockKopisService();
-      repo = PerformanceRepository(
-        mockService,
-        kopisService: mockKopis,
-      );
+      repo = PerformanceRepository(mockService, kopisService: mockKopis);
       PerformanceRepository.clearCache();
     });
 
-    test('gracefully recovers with empty list when both Backend and KOPIS completely fail', () async {
-      when(
-        mockService.getPerformances(
-          stdate: anyNamed('stdate'),
-          eddate: anyNamed('eddate'),
-          venue: anyNamed('venue'),
-        ),
-      ).thenThrow(Exception('Backend network down'));
+    test(
+      'gracefully recovers with empty list when both Backend and KOPIS completely fail',
+      () async {
+        when(
+          mockService.getPerformances(
+            stdate: anyNamed('stdate'),
+            eddate: anyNamed('eddate'),
+            venue: anyNamed('venue'),
+          ),
+        ).thenThrow(Exception('Backend network down'));
 
-      when(
-        mockKopis.getPerformances(
-          stdate: anyNamed('stdate'),
-          eddate: anyNamed('eddate'),
-          shprfnmfct: anyNamed('shprfnmfct'),
-        ),
-      ).thenThrow(Exception('KOPIS API timeout'));
+        when(
+          mockKopis.getPerformances(
+            stdate: anyNamed('stdate'),
+            eddate: anyNamed('eddate'),
+            shprfnmfct: anyNamed('shprfnmfct'),
+          ),
+        ).thenThrow(Exception('KOPIS API timeout'));
 
-      final results = await repo.getUpcomingPerformances(forceRefresh: true);
-      expect(results, isEmpty);
-    });
+        final results = await repo.getUpcomingPerformances(forceRefresh: true);
+        expect(results, isEmpty);
+      },
+    );
 
-    test('booking links are merged with official venue links first and no duplicates', () async {
-      final p1 = Performance(
-        id: 'PF1',
-        title: '울산 오페라 축제 [울산]',
-        startDate: '2026.11.01',
-        endDate: '2026.11.01',
-        venue: '울산문화예술회관',
-        posterUrl: 'http://kopis.or.kr/1.jpg',
-        genre: '클래식',
-        state: '공연예정',
-        district: '남구',
-      );
+    test(
+      'booking links are merged with official venue links first and no duplicates',
+      () async {
+        final p1 = Performance(
+          id: 'PF1',
+          title: '울산 오페라 축제 [울산]',
+          startDate: '2026.11.01',
+          endDate: '2026.11.01',
+          venue: '울산문화예술회관',
+          posterUrl: 'http://kopis.or.kr/1.jpg',
+          genre: '클래식',
+          state: '공연예정',
+          district: '남구',
+        );
 
-      final p2 = Performance(
-        id: 'CRAWLED1',
-        title: '울산 오페라 축제',
-        startDate: '2026.11.01',
-        endDate: '2026.11.01',
-        venue: '울산문화예술회관 (대공연장)',
-        posterUrl: '',
-        genre: '',
-        state: '공연예정',
-        district: '남구',
-      );
+        final p2 = Performance(
+          id: 'CRAWLED1',
+          title: '울산 오페라 축제',
+          startDate: '2026.11.01',
+          endDate: '2026.11.01',
+          venue: '울산문화예술회관 (대공연장)',
+          posterUrl: '',
+          genre: '',
+          state: '공연예정',
+          district: '남구',
+        );
 
-      when(
-        mockService.getPerformances(
-          stdate: anyNamed('stdate'),
-          eddate: anyNamed('eddate'),
-        ),
-      ).thenAnswer((_) async => [p1, p2]);
+        when(
+          mockService.getPerformances(
+            stdate: anyNamed('stdate'),
+            eddate: anyNamed('eddate'),
+          ),
+        ).thenAnswer((_) async => [p1, p2]);
 
-      final results = await repo.getUpcomingPerformances(forceRefresh: true);
-      expect(results.length, 1);
-      final merged = results.first;
-      expect(merged.id, 'PF1');
-      expect(merged.title, '울산 오페라 축제 [울산]');
-      expect(merged.venue, '울산문화예술회관 (대공연장)');
-    });
+        final results = await repo.getUpcomingPerformances(forceRefresh: true);
+        expect(results.length, 1);
+        final merged = results.first;
+        expect(merged.id, 'PF1');
+        expect(merged.title, '울산 오페라 축제 [울산]');
+        expect(merged.venue, '울산문화예술회관 (대공연장)');
+      },
+    );
   });
 
   group('Robustness: SearchViewModel Date Calculation', () {

@@ -12,7 +12,9 @@ class HomeViewModel extends _$HomeViewModel {
     return _fetchPerformances();
   }
 
-  Future<List<Performance>> _fetchPerformances({bool forceRefresh = false}) async {
+  Future<List<Performance>> _fetchPerformances({
+    bool forceRefresh = false,
+  }) async {
     final repo = ref.watch(performanceRepositoryProvider);
     return repo.getUpcomingPerformances(forceRefresh: forceRefresh);
   }

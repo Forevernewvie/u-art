@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 enum StampSize {
   compact, // For list/search/bookmark thumbnails (60x80)
   regular, // For home banner & medium cards
-  large,   // For detail screen hero poster
+  large, // For detail screen hero poster
 }
 
 class SoldOutStamp extends StatelessWidget {
