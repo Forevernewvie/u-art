@@ -78,7 +78,16 @@ class PerformanceRepository {
       combined = [...ulsanArtsCenter, ...jungguArtsCenter];
     }
 
-    final enriched = await _enrichPerformancesWithJungguStatuses(combined);
+    // Deduplicate by ID
+    final seenIds = <String>{};
+    final deduped = <Performance>[];
+    for (final p in combined) {
+      if (seenIds.add(p.id)) {
+        deduped.add(p);
+      }
+    }
+
+    final enriched = await _enrichPerformancesWithJungguStatuses(deduped);
     enriched.sort((a, b) => a.startDate.compareTo(b.startDate));
     return enriched;
   }

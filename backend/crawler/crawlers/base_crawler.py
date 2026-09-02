@@ -3,6 +3,7 @@ from datetime import datetime
 from pymongo import MongoClient
 import os
 import re
+import hashlib
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://root:examplepassword@db:27017/uart?authSource=admin")
 
@@ -17,9 +18,13 @@ def canonical_date(d_str: str) -> str:
     return cleaned
 
 def canonical_venue(v_str: str) -> str:
-    """Normalizes venue names into core facility clusters."""
+    """Normalizes venue names into core facility clusters without cross-district collision."""
     if not v_str:
         return ""
+    if "북구" in v_str and ("문화예술회관" in v_str or "문예회관" in v_str):
+        return "북구문화예술회관"
+    if "울주" in v_str and ("문화예술회관" in v_str or "문예회관" in v_str):
+        return "울주문화예술회관"
     if "중구문화의전당" in v_str or "함월홀" in v_str or "달빛마루" in v_str:
         return "중구문화의전당"
     if "문화예술회관" in v_str or "문예회관" in v_str:
@@ -30,6 +35,8 @@ def canonical_venue(v_str: str) -> str:
         return "꽃바위문화관"
     if "서울주" in v_str:
         return "서울주문화센터"
+    if "현대예술관" in v_str:
+        return "현대예술관"
     return re.sub(r'[\s\W_]+', '', v_str)
 
 def canonical_title(t_str: str) -> str:
@@ -115,8 +122,6 @@ class BaseCrawler(abc.ABC):
         self.error_log = ""
 
     def save_performance(self, perf: dict):
-        target_doc = None
-
         # Normalize dates on ingestion
         start_d = canonical_date(perf.get("startDate", ""))
         perf["startDate"] = start_d
@@ -124,6 +129,11 @@ class BaseCrawler(abc.ABC):
             perf["endDate"] = canonical_date(perf.get("endDate", ""))
 
         perf["normTitle"] = canonical_title(perf.get("title", ""))
+
+        # Ensure unique, stable deterministic ID
+        if not perf.get("id"):
+            h = hashlib.md5(f"{perf.get('venue')}_{perf.get('normTitle')}_{start_d}".encode()).hexdigest()[:12]
+            perf["id"] = f"{perf.get('source', 'CRAWLED').lower()}_{h}"
 
         # 1. Search by date variations (dot and hyphen)
         dash_date = start_d.replace(".", "-")
@@ -134,10 +144,15 @@ class BaseCrawler(abc.ABC):
             ]
         }))
 
-        for doc in candidates:
-            if is_same_performance(perf, doc):
-                target_doc = doc
-                break
+        matching_docs = [doc for doc in candidates if is_same_performance(perf, doc)]
+        target_doc = None
+        extra_docs = []
+
+        if matching_docs:
+            # Prefer KOPIS document as primary baseline if available
+            kopis_targets = [d for d in matching_docs if d.get("source") == "KOPIS"]
+            target_doc = kopis_targets[0] if kopis_targets else matching_docs[0]
+            extra_docs = [d for d in matching_docs if d["_id"] != target_doc["_id"]]
 
         perf["updatedAt"] = datetime.now()
 
@@ -145,15 +160,21 @@ class BaseCrawler(abc.ABC):
             existing_source = target_doc.get("source", "CRAWLED")
             new_source = perf.get("source", "CRAWLED")
 
-            existing_links = target_doc.get("bookingLinks", [])
-            new_links = perf.get("bookingLinks", [])
-            merged_links = merge_booking_links(new_links, existing_links)
+            # Collect booking links from target and all extra duplicate docs
+            all_existing_links = target_doc.get("bookingLinks", []).copy()
+            for ex in extra_docs:
+                all_existing_links.extend(ex.get("bookingLinks", []))
 
+            new_links = perf.get("bookingLinks", [])
+            merged_links = merge_booking_links(new_links, all_existing_links)
+
+            # Sold out propagation across perf, target, and extra docs
             is_sold_out = (
                 perf.get("isSoldOut", False) or
                 perf.get("state") == "매진" or
                 target_doc.get("isSoldOut", False) or
-                target_doc.get("state") == "매진"
+                target_doc.get("state") == "매진" or
+                any(ex.get("isSoldOut", False) or ex.get("state") == "매진" for ex in extra_docs)
             )
 
             if new_source == "KOPIS" and existing_source == "CRAWLED":
@@ -187,6 +208,10 @@ class BaseCrawler(abc.ABC):
                     perf["isSoldOut"] = True
                 self.performances.replace_one({"_id": target_doc["_id"]}, perf)
                 self.updated_count += 1
+
+            # Self-healing: Delete any extra duplicate sister documents found
+            if extra_docs:
+                self.performances.delete_many({"_id": {"$in": [d["_id"] for d in extra_docs]}})
         else:
             # New document
             self.performances.insert_one(perf)
