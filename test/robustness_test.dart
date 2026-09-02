@@ -343,6 +343,86 @@ void main() {
         expect(result.bookingLinks[1].name, '인터파크 티켓 검색');
       },
     );
+
+    test(
+      'Joint Recital (조인트 리사이틀) with paid price but no online buy button is NOT marked as sold out',
+      () async {
+        final jointRecital = PerformanceDetail(
+          id: 'PF_JOINT_RECITAL',
+          title: '조인트 리사이틀',
+          startDate: '2026.10.15',
+          endDate: '2026.10.15',
+          venue: '중구문화의전당 함월홀',
+          cast: '피아노 연주자',
+          runtime: '90분',
+          timeGuidance: '19:30',
+          ageLimit: '초등학생 이상',
+          price: '일반 10,000원',
+          posterUrl: '',
+          genre: '클래식',
+          state: '공연중',
+          district: '중구',
+          bookingLinks: [
+            BookingLink(
+              name: '중구문화의전당 공식 안내',
+              url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
+            ),
+          ],
+          detailImages: [],
+        );
+
+        when(
+          mockService.getPerformanceDetail('PF_JOINT_RECITAL'),
+        ).thenAnswer((_) async => jointRecital);
+
+        final result = await repo.getPerformanceDetail('PF_JOINT_RECITAL');
+        expect(result.isSoldOut, isFalse);
+        expect(result.state, '공연중');
+        expect(result.bookingLinks.first.name, '중구문화의전당 공식 안내');
+      },
+    );
+
+    test(
+      'Performance with Naver Booking link prioritizes direct reservation over general info',
+      () async {
+        final naverDoc = PerformanceDetail(
+          id: 'PF_BEAUTY_BEAST',
+          title: '가족뮤지컬 미녀와야수 [울산]',
+          startDate: '2026.09.20',
+          endDate: '2026.09.20',
+          venue: '중구문화의전당 함월홀',
+          cast: '',
+          runtime: '60분',
+          timeGuidance: '11:00, 14:00',
+          ageLimit: '전체 관람가',
+          price: '사전예약 9,900원',
+          posterUrl: '',
+          genre: '뮤지컬',
+          state: '공연예정',
+          district: '중구',
+          bookingLinks: [
+            BookingLink(
+              name: '네이버N예약',
+              url: 'https://booking.naver.com/booking/12/bizes/1698367',
+            ),
+          ],
+          detailImages: [],
+        );
+
+        when(
+          mockService.getPerformanceDetail('PF_BEAUTY_BEAST'),
+        ).thenAnswer((_) async => naverDoc);
+
+        final result = await repo.getPerformanceDetail('PF_BEAUTY_BEAST');
+        expect(result.isSoldOut, isFalse);
+        expect(result.bookingLinks.first.name, '네이버N예약');
+        expect(
+          result.bookingLinks.first.url,
+          'https://booking.naver.com/booking/12/bizes/1698367',
+        );
+        expect(result.bookingLinks[1].name, '중구문화의전당 공식 예매');
+      },
+    );
   });
 
   group('Robustness: SearchViewModel Date Calculation', () {
