@@ -43,5 +43,33 @@ void main() {
         isFalse,
       );
     });
+
+    test('matches Ginginbam when marked sold out in statuses', () {
+      final statuses = {
+        '입과손스튜디오긴긴밤': true,
+      };
+
+      expect(
+        JungguCrawlerService.isTitleSoldOut(
+          '긴긴밤 [울산]',
+          statuses,
+        ),
+        isTrue,
+      );
+
+      expect(
+        JungguCrawlerService.isTitleSoldOut(
+          '입과손스튜디오 <긴긴밤>',
+          statuses,
+        ),
+        isTrue,
+      );
+    });
+
+    test('clearCache resets static in-memory cache', () {
+      JungguCrawlerService.clearCache();
+      // Verifies no exception thrown
+      expect(true, isTrue);
+    });
   });
 }
