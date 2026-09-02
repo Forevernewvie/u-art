@@ -13,11 +13,13 @@ import 'performance_repository_test.mocks.dart';
 void main() {
   group('PerformanceRepository', () {
     late MockUartApiService mockService;
+    late MockKopisService mockKopis;
     late PerformanceRepository repository;
 
     setUp(() {
       mockService = MockUartApiService();
-      repository = PerformanceRepository(mockService);
+      mockKopis = MockKopisService();
+      repository = PerformanceRepository(mockService, kopisService: mockKopis);
     });
 
     test('getUpcomingPerformances returns sorted combined list', () async {
@@ -226,6 +228,10 @@ void main() {
 
         when(
           mockService.getPerformanceDetail('PF296392'),
+        ).thenAnswer((_) async => rawDetail);
+
+        when(
+          mockKopis.getPerformanceDetail('PF296392'),
         ).thenAnswer((_) async => rawDetail);
 
         final enriched = await repository.getPerformanceDetail('PF296392');
