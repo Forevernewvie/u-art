@@ -315,7 +315,7 @@ void main() {
           runtime: '',
           timeGuidance: '',
           ageLimit: '전체 관람가',
-          price: '전석 무료',
+          price: '전석 20,000원',
           posterUrl: '',
           genre: '클래식',
           state: '공연예정',
@@ -421,6 +421,46 @@ void main() {
           'https://booking.naver.com/booking/12/bizes/1698367',
         );
         expect(result.bookingLinks[1].name, '중구문화의전당 공식 예매');
+      },
+    );
+
+    test(
+      'PerformanceRepository strictly deduplicates duplicate URLs and sets official info name for free shows',
+      () async {
+        final doc = PerformanceDetail(
+          id: 'PF_DUPLICATE_TEST',
+          title: '무료 야외 영화 콘서트',
+          startDate: '2026.09.25',
+          endDate: '2026.09.25',
+          venue: '중구문화의전당 달빛마루',
+          cast: '',
+          runtime: '',
+          timeGuidance: '',
+          ageLimit: '전체 관람가',
+          price: '전석 무료',
+          posterUrl: '',
+          genre: '영화',
+          state: '공연예정',
+          district: '중구',
+          bookingLinks: [
+            BookingLink(name: '중구 홈', url: 'https://artscenter.junggu.ulsan.kr'),
+            BookingLink(name: '중구 홈 중복', url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do'),
+            BookingLink(name: '인터파크 1', url: 'https://tickets.interpark.com/search?keyword=movie'),
+            BookingLink(name: '인터파크 1 중복', url: 'https://tickets.interpark.com/search?keyword=movie'),
+          ],
+          detailImages: [],
+        );
+
+        when(
+          mockService.getPerformanceDetail('PF_DUPLICATE_TEST'),
+        ).thenAnswer((_) async => doc);
+
+        final result = await repo.getPerformanceDetail('PF_DUPLICATE_TEST');
+        expect(result.bookingLinks.first.name, '중구문화의전당 공식 안내');
+        expect(result.bookingLinks.first.url, 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do');
+        // Total links should be 2: Junggu official link + 1 deduplicated Interpark link
+        expect(result.bookingLinks.length, 2);
+        expect(result.bookingLinks[1].url, 'https://tickets.interpark.com/search?keyword=movie');
       },
     );
   });
