@@ -66,6 +66,21 @@ class Performance {
       district: '전체',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'startDate': startDate,
+      'endDate': endDate,
+      'venue': venue,
+      'posterUrl': posterUrl,
+      'genre': genre,
+      'state': state,
+      'district': district,
+      'isSoldOut': isSoldOut,
+    };
+  }
 }
 
 class BookingLink {

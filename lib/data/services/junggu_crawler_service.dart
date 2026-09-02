@@ -3,12 +3,28 @@ import 'package:http/http.dart' as http;
 
 class JungguCrawlerService {
   final http.Client _client;
+  static Map<String, bool>? _cachedStatuses;
+  static DateTime? _lastFetchTime;
+  static const Duration _cacheDuration = Duration(minutes: 30);
 
   JungguCrawlerService({http.Client? client}) : _client = client ?? http.Client();
 
+  /// Clears in-memory cache for testing or manual refresh
+  static void clearCache() {
+    _cachedStatuses = null;
+    _lastFetchTime = null;
+  }
+
   /// Fetches real-time performance statuses directly from Junggu Arts Center website.
   /// Returns a map of normalized performance titles to their sold-out boolean status.
-  Future<Map<String, bool>> fetchSoldOutStatuses() async {
+  Future<Map<String, bool>> fetchSoldOutStatuses({bool forceRefresh = false}) async {
+    if (!forceRefresh &&
+        _cachedStatuses != null &&
+        _lastFetchTime != null &&
+        DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+      return Map<String, bool>.from(_cachedStatuses!);
+    }
+
     final statuses = <String, bool>{};
 
     try {
@@ -73,6 +89,8 @@ class JungguCrawlerService {
     statuses.putIfAbsent(_normalize('양파'), () => true);
     statuses.putIfAbsent(_normalize('미녀와야수'), () => true);
 
+    _cachedStatuses = Map<String, bool>.from(statuses);
+    _lastFetchTime = DateTime.now();
     return statuses;
   }
 
