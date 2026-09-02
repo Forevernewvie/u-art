@@ -82,12 +82,37 @@ class PerformanceRepository {
     return _fetchAndCachePerformances();
   }
 
+  Future<List<Performance>> getPerformancesInRange({
+    required DateTime startDate,
+    required DateTime endDate,
+    bool forceRefresh = false,
+  }) async {
+    return _fetchPerformances(startDate: startDate, endDate: endDate);
+  }
+
   Future<List<Performance>> _fetchAndCachePerformances() async {
     final now = DateTime.now();
     final endDate = now.add(const Duration(days: 14));
+    final enriched = await _fetchPerformances(startDate: now, endDate: endDate);
 
+    // Update in-memory cache and SharedPreferences
+    _memoryCachedUpcoming = enriched;
+    _lastCacheTime = DateTime.now();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encoded = jsonEncode(enriched.map((p) => p.toJson()).toList());
+      await prefs.setString(_storageCacheKey, encoded);
+    } catch (_) {}
+
+    return enriched;
+  }
+
+  Future<List<Performance>> _fetchPerformances({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
     final dateFormat = DateFormat('yyyyMMdd');
-    final stdateStr = dateFormat.format(now);
+    final stdateStr = dateFormat.format(startDate);
     final eddateStr = dateFormat.format(endDate);
 
     List<Performance> combined = [];
@@ -97,7 +122,7 @@ class PerformanceRepository {
       try {
         combined = await _service
             .getPerformances(
-              stdate: DateFormat('yyyy.MM.dd').format(now),
+              stdate: DateFormat('yyyy.MM.dd').format(startDate),
               eddate: DateFormat('yyyy.MM.dd').format(endDate),
             )
             .timeout(const Duration(milliseconds: 1500));
@@ -106,14 +131,14 @@ class PerformanceRepository {
         final venueResults = await Future.wait([
           _service
               .getPerformances(
-                stdate: DateFormat('yyyy.MM.dd').format(now),
+                stdate: DateFormat('yyyy.MM.dd').format(startDate),
                 eddate: DateFormat('yyyy.MM.dd').format(endDate),
                 venue: '울산문화예술회관',
               )
               .timeout(const Duration(milliseconds: 1500)),
           _service
               .getPerformances(
-                stdate: DateFormat('yyyy.MM.dd').format(now),
+                stdate: DateFormat('yyyy.MM.dd').format(startDate),
                 eddate: DateFormat('yyyy.MM.dd').format(endDate),
                 venue: '중구문화의전당',
               )
@@ -142,11 +167,17 @@ class PerformanceRepository {
       }
     }
 
-    // Smart synthesis by ID and normalized date + title similarity
+    final deduped = synthesizePerformances(combined);
+    final enriched = await _enrichPerformancesWithJungguStatuses(deduped);
+    enriched.sort((a, b) => a.startDate.compareTo(b.startDate));
+    return enriched;
+  }
+
+  static List<Performance> synthesizePerformances(List<Performance> list) {
     final seenIds = <String>{};
     final Map<String, Performance> synthesizedMap = {};
 
-    for (final p in combined) {
+    for (final p in list) {
       if (!seenIds.add(p.id)) continue;
 
       final normTitle = p.title
@@ -205,20 +236,7 @@ class PerformanceRepository {
       }
     }
 
-    final deduped = synthesizedMap.values.toList();
-    final enriched = await _enrichPerformancesWithJungguStatuses(deduped);
-    enriched.sort((a, b) => a.startDate.compareTo(b.startDate));
-
-    // Update in-memory cache and SharedPreferences
-    _memoryCachedUpcoming = enriched;
-    _lastCacheTime = DateTime.now();
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final encoded = jsonEncode(enriched.map((p) => p.toJson()).toList());
-      await prefs.setString(_storageCacheKey, encoded);
-    } catch (_) {}
-
-    return enriched;
+    return synthesizedMap.values.toList();
   }
 
   Future<List<Performance>> _enrichPerformancesWithJungguStatuses(
