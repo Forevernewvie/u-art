@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:u_art/data/models/performance.dart';
 import 'package:u_art/data/repositories/performance_repository.dart';
 import 'package:u_art/data/services/kopis_service.dart';
@@ -253,6 +255,190 @@ void main() {
       final container = ProviderContainer();
       final repo = container.read(performanceRepositoryProvider);
       expect(repo, isA<PerformanceRepository>());
+    });
+
+    test('PerformanceRepository defaults to concrete KopisService and JungguCrawlerService', () {
+      final repo = PerformanceRepository(mockService);
+      expect(repo, isNotNull);
+    });
+
+    test('getUpcomingPerformances loads from SharedPreferences disk cache when memory cache is cold', () async {
+      SharedPreferences.setMockInitialValues({
+        'cached_upcoming_performances_v1': jsonEncode([
+          {
+            'id': 'PF_DISK_01',
+            'title': '디스크 캐시 공연',
+            'startDate': '2026.09.10',
+            'endDate': '2026.09.10',
+            'venue': '울산문예회관',
+            'posterUrl': '',
+            'genre': '연극',
+            'state': '공연중',
+            'district': '남구',
+          }
+        ]),
+      });
+
+      PerformanceRepository.clearCache();
+      final diskRepo = PerformanceRepository(
+        mockService,
+        kopisService: mockKopis,
+      );
+      final list = await diskRepo.getUpcomingPerformances();
+      expect(list.length, 1);
+      expect(list.first.id, 'PF_DISK_01');
+    });
+
+    test('getPerformanceDetail falls back to KOPIS service when backend service throws', () async {
+      when(mockService.getPerformanceDetail('PF_FALLBACK'))
+          .thenThrow(Exception('Backend 500'));
+      when(mockKopis.getPerformanceDetail('PF_FALLBACK'))
+          .thenAnswer((_) async => PerformanceDetail(
+                id: 'PF_FALLBACK',
+                title: '폴백 공연',
+                startDate: '2026.09.10',
+                endDate: '2026.09.10',
+                venue: '울산문화예술회관 대공연장',
+                cast: '출연진 정보 없음',
+                runtime: '',
+                timeGuidance: '',
+                ageLimit: '',
+                price: '전석 10,000원',
+                posterUrl: '',
+                genre: '클래식',
+                state: '공연중',
+                district: '남구',
+                bookingLinks: [
+                  BookingLink(name: '인터파크', url: 'http://interpark.com')
+                ],
+                detailImages: [],
+              ));
+
+      final detail = await repository.getPerformanceDetail('PF_FALLBACK');
+      expect(detail.id, 'PF_FALLBACK');
+      expect(detail.title, '폴백 공연');
+    });
+
+    test('synthesizePerformances handles kopis item with empty poster and genre and venue without parentheses', () {
+      final crawled = Performance(
+        id: 'CR01',
+        title: '테스트 오페라',
+        startDate: '2026.10.10',
+        endDate: '2026.10.10',
+        venue: '울산문예회관 대공연장',
+        posterUrl: 'http://crawled.com/poster.jpg',
+        genre: '오페라',
+        state: '공연중',
+        district: '남구',
+      );
+      final kopis = Performance(
+        id: 'PF9999',
+        title: '테스트 오페라 [울산]',
+        startDate: '2026.10.10',
+        endDate: '2026.10.10',
+        venue: '울산문예회관',
+        posterUrl: '',
+        genre: '',
+        state: '공연중',
+        district: '전체',
+      );
+
+      final result = PerformanceRepository.synthesizePerformances([crawled, kopis]);
+      expect(result.length, 1);
+      expect(result.first.id, 'PF9999');
+      expect(result.first.posterUrl, 'http://crawled.com/poster.jpg');
+      expect(result.first.genre, '오페라');
+      expect(result.first.venue, '울산문예회관');
+      expect(result.first.district, '남구');
+    });
+
+    test('getPerformanceDetail enriches cast, runtime, time guidance, ageLimit, detailImages from KOPIS when primary detail has missing values', () async {
+      final sparseDetail = PerformanceDetail(
+        id: 'PF_SPARSE',
+        title: '빈약한 공연',
+        startDate: '2026.11.01',
+        endDate: '2026.11.01',
+        venue: '',
+        cast: '출연진 정보 없음',
+        runtime: '',
+        timeGuidance: '',
+        ageLimit: '',
+        price: '공연장/기획사 문의',
+        posterUrl: '',
+        genre: '',
+        state: '공연중',
+        district: '중구',
+        bookingLinks: [],
+        detailImages: [],
+      );
+
+      final richKopis = PerformanceDetail(
+        id: 'PF_SPARSE',
+        title: '빈약한 공연',
+        startDate: '2026.11.01',
+        endDate: '2026.11.01',
+        venue: '중구문화의전당 달빛마루',
+        cast: '유명 배우',
+        runtime: '120분',
+        timeGuidance: '14:00, 18:00',
+        ageLimit: '8세 이상',
+        price: 'R석 50,000원',
+        posterUrl: 'http://kopis.or.kr/poster2.jpg',
+        genre: '뮤지컬',
+        state: '공연중',
+        district: '중구',
+        bookingLinks: [
+          BookingLink(name: '인터파크', url: 'http://interpark.com')
+        ],
+        detailImages: ['http://kopis.or.kr/detail.jpg'],
+      );
+
+      when(mockService.getPerformanceDetail('PF_SPARSE'))
+          .thenAnswer((_) async => sparseDetail);
+      when(mockKopis.getPerformanceDetail('PF_SPARSE'))
+          .thenAnswer((_) async => richKopis);
+
+      final enriched = await repository.getPerformanceDetail('PF_SPARSE');
+      expect(enriched.cast, '유명 배우');
+      expect(enriched.runtime, '120분');
+      expect(enriched.timeGuidance, '14:00, 18:00');
+      expect(enriched.ageLimit, '8세 이상');
+      expect(enriched.price, 'R석 50,000원');
+      expect(enriched.posterUrl, 'http://kopis.or.kr/poster2.jpg');
+      expect(enriched.genre, '뮤지컬');
+      expect(enriched.detailImages, ['http://kopis.or.kr/detail.jpg']);
+    });
+
+    test('getPerformancesInRange fetches from KOPIS when backend service returns empty or fails', () async {
+      when(mockService.getPerformances(
+        stdate: anyNamed('stdate'),
+        eddate: anyNamed('eddate'),
+        venue: anyNamed('venue'),
+      )).thenThrow(Exception('Backend 500'));
+      when(mockKopis.getPerformances(
+        stdate: anyNamed('stdate'),
+        eddate: anyNamed('eddate'),
+        shprfnmfct: anyNamed('shprfnmfct'),
+      )).thenAnswer((_) async => [
+        Performance(
+          id: 'PF_RANGE_01',
+          title: '범위 공연',
+          startDate: '2026.09.15',
+          endDate: '2026.09.15',
+          venue: '울산문화예술회관',
+          posterUrl: '',
+          genre: '무용',
+          state: '공연예정',
+          district: '남구',
+        )
+      ]);
+
+      final results = await repository.getPerformancesInRange(
+        startDate: DateTime(2026, 9, 1),
+        endDate: DateTime(2026, 9, 30),
+      );
+      expect(results, isNotEmpty);
+      expect(results.first.id, 'PF_RANGE_01');
     });
   });
 }

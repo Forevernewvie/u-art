@@ -6,6 +6,8 @@ import 'package:u_art/data/models/performance.dart';
 import 'package:u_art/ui/features/bookmark/view_models/bookmark_list_view_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:u_art/ui/features/bookmark/view_models/bookmark_view_model.dart';
+import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 void main() {
   testWidgets('BookmarkScreen interactions', (tester) async {
@@ -85,6 +87,46 @@ void main() {
     // Tap refresh
     await tester.tap(find.text('새로고침'));
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('BookmarkScreen renders SoldOutStamp for sold out item', (tester) async {
+    final detail = PerformanceDetail(
+      id: 'SOLD_BM',
+      title: '매진 북마크',
+      startDate: '2026.10.10',
+      endDate: '2026.10.10',
+      venue: '문예회관',
+      cast: '배우',
+      runtime: '60분',
+      timeGuidance: '19:00',
+      ageLimit: '전체',
+      price: '무료',
+      posterUrl: 'invalid_url',
+      genre: '연극',
+      state: '매진',
+      district: '전체',
+      bookingLinks: [],
+      detailImages: [],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          bookmarkListViewModelProvider.overrideWith(
+            () => MockBookmarkListViewModel([detail]),
+          ),
+          bookmarkProvider.overrideWith(() => MockBookmarkNotifier(['SOLD_BM'])),
+        ],
+        child: const MaterialApp(home: BookmarkScreen()),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+    expect(find.byType(SoldOutStamp), findsOneWidget);
+
+    final bmImg = tester.widget<CachedNetworkImage>(find.byType(CachedNetworkImage).first);
+    final err = bmImg.errorWidget!(tester.element(find.byType(BookmarkScreen)), 'url', 'err');
+    expect(err, isA<Icon>());
   });
 }
 
