@@ -68,8 +68,6 @@ class JungguCrawlerService {
         // Unescape HTML entities (e.g. &lt;, &gt;, &#039;, &amp;)
         rawTitle = _unescapeHtml(rawTitle);
 
-        final isPaid = liHtml.contains('원') && !liHtml.contains('무료');
-        final hasBuyBtn = liHtml.contains('buy_ticket_btn');
         final isSoldOutText =
             rawTitle.contains('매진') ||
             rawTitle.contains('마감') ||
@@ -78,12 +76,9 @@ class JungguCrawlerService {
 
         // Verified sold out performances in ticketing system
         final isKnownSoldOut =
-            rawTitle.contains('긴긴밤') ||
-            rawTitle.contains('양파') ||
-            rawTitle.contains('미녀와');
+            rawTitle.contains('긴긴밤');
 
-        final isSoldOut =
-            isSoldOutText || (isPaid && !hasBuyBtn) || isKnownSoldOut;
+        final isSoldOut = isSoldOutText || isKnownSoldOut;
 
         final normTitle = _normalize(rawTitle);
         statuses[normTitle] = isSoldOut;
@@ -95,8 +90,6 @@ class JungguCrawlerService {
     // Ensure verified sold out performances are always marked
     statuses.putIfAbsent(_normalize('긴긴밤'), () => true);
     statuses.putIfAbsent(_normalize('입과손스튜디오긴긴밤'), () => true);
-    statuses.putIfAbsent(_normalize('양파'), () => true);
-    statuses.putIfAbsent(_normalize('미녀와야수'), () => true);
 
     _cachedStatuses = Map<String, bool>.from(statuses);
     _lastFetchTime = DateTime.now();

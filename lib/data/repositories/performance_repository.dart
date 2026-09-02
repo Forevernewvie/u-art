@@ -349,23 +349,40 @@ class PerformanceRepository {
         price = '일반 10,000원';
       }
 
+      final hasInfoOnly = detail.bookingLinks.any((l) => l.name.contains('안내'));
       final jungguOfficialLink = BookingLink(
-        name: '중구문화의전당 공식 예매',
+        name: hasInfoOnly ? '중구문화의전당 공식 안내' : '중구문화의전당 공식 예매',
         url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
       );
 
-      final filteredOtherLinks = detail.bookingLinks.where(
-        (l) =>
-            !l.url.contains('artscenter.junggu.ulsan.kr') &&
-            l.name != '중구문화의전당 공식 예매',
-      ).toList();
+      // Separate direct booking platforms (like Naver 예약, direct ticketing) from generic search links
+      final directBookingLinks = <BookingLink>[];
+      final otherLinks = <BookingLink>[];
 
-      final updatedLinks = [jungguOfficialLink, ...filteredOtherLinks];
+      for (final link in detail.bookingLinks) {
+        if (link.url.contains('artscenter.junggu.ulsan.kr') ||
+            link.name.contains('중구문화의전당')) {
+          continue;
+        }
+        if (link.url.contains('booking.naver.com') ||
+            link.url.contains('/goods/') ||
+            link.name.contains('네이버')) {
+          directBookingLinks.add(link);
+        } else {
+          otherLinks.add(link);
+        }
+      }
+
+      final updatedLinks = [
+        ...directBookingLinks,
+        jungguOfficialLink,
+        ...otherLinks,
+      ];
 
       final hasLinkChanged =
           updatedLinks.length != detail.bookingLinks.length ||
           detail.bookingLinks.isEmpty ||
-          detail.bookingLinks.first.url != jungguOfficialLink.url;
+          detail.bookingLinks.first.url != updatedLinks.first.url;
 
       if (isSoldOut != detail.isSoldOut ||
           price != detail.price ||
