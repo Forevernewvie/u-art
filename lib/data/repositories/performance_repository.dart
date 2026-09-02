@@ -10,9 +10,9 @@ part 'performance_repository.g.dart';
 
 @riverpod
 UartApiService uartApiService(Ref ref) {
-  // Production Cloudflare Tunnel endpoint
+  // Linux Server backend endpoint
   return UartApiService(
-    'https://loaded-boring-keeping-previously.trycloudflare.com',
+    'http://172.30.1.43:3000',
   );
 }
 
