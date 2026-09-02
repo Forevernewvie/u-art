@@ -248,6 +248,8 @@ void main() {
           find.textContaining('지금 예매하기 (중구문화의전당 공식 예매)'),
           findsOneWidget,
         );
+        expect(find.text('공연장 문의'), findsNWidgets(2));
+        expect(find.text('공연장/기획사 문의'), findsOneWidget);
       },
     );
   });

@@ -133,25 +133,41 @@ class DetailScreen extends ConsumerWidget {
                           _buildInfoRow(
                             Icons.schedule,
                             '공연시간',
-                            detail.timeGuidance,
+                            detail.timeGuidance.trim().isNotEmpty
+                                ? detail.timeGuidance
+                                : '공연장 문의',
                           ),
                           _buildInfoRow(
                             Icons.timer_outlined,
                             '관람시간',
-                            detail.runtime,
+                            detail.runtime.trim().isNotEmpty
+                                ? detail.runtime
+                                : '공연장 문의',
                           ),
                           _buildInfoRow(
                             Icons.location_on,
                             '공연장소',
                             detail.venue,
                           ),
-                          _buildInfoRow(Icons.person, '관람연령', detail.ageLimit),
+                          _buildInfoRow(
+                            Icons.person,
+                            '관람연령',
+                            detail.ageLimit.trim().isNotEmpty
+                                ? detail.ageLimit
+                                : '전체 관람가',
+                          ),
                           _buildInfoRow(
                             Icons.confirmation_number_outlined,
                             '티켓가격',
                             detail.price,
                           ),
-                          _buildInfoRow(Icons.groups, '출연진', detail.cast),
+                          _buildInfoRow(
+                            Icons.groups,
+                            '출연진',
+                            detail.cast.trim().isNotEmpty
+                                ? detail.cast
+                                : '공연장/기획사 문의',
+                          ),
 
                           const SizedBox(height: 24),
                           SizedBox(
