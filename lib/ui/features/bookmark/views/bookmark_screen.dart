@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../view_models/bookmark_list_view_model.dart';
+import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 
 class BookmarkScreen extends ConsumerWidget {
   const BookmarkScreen({super.key});
@@ -65,29 +66,8 @@ class BookmarkScreen extends ConsumerWidget {
                                   const Icon(Icons.error),
                             ),
                             if (perf.isSoldOut)
-                              Positioned.fill(
-                                child: Container(
-                                  color: Colors.black.withValues(alpha: 0.6),
-                                  alignment: Alignment.center,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red.withValues(alpha: 0.9),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Text(
-                                      '매진',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                              const SoldOutStamp(
+                                size: StampSize.regular,
                               ),
                           ],
                         ),

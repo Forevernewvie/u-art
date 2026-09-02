@@ -40,7 +40,7 @@ class JungGuCrawler(BaseCrawler):
             venue = f"중구문화의전당 {sub_venue}".strip() if sub_venue else "중구문화의전당"
             
             # Check if soldout is indicated in title, alt text, or tags
-            is_sold_out = '매진' in title or '매진' in alt_text or 'sold' in alt_text.lower() or '마감' in alt_text
+            is_sold_out = '매진' in title or '매진' in alt_text or 'sold' in alt_text.lower() or '마감' in alt_text or '마감' in title
             state = '매진' if is_sold_out else '공연중'
             
             booking_links = []
@@ -62,6 +62,7 @@ class JungGuCrawler(BaseCrawler):
                 "posterUrl": poster_url,
                 "genre": genre,
                 "state": state,
+                "isSoldOut": is_sold_out,
                 "source": "CRAWLED",
                 "district": "중구",
                 "bookingLinks": booking_links

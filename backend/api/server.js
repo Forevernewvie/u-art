@@ -30,6 +30,7 @@ const performanceSchema = new mongoose.Schema({
   genre: String,
   price: String,
   state: String,
+  isSoldOut: { type: Boolean, default: false },
   source: String, // "KOPIS" or "CRAWLED"
   bookingLinks: [{ name: String, url: String }],
   updatedAt: { type: Date, default: Date.now }

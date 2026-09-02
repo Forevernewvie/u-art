@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:rxdart/rxdart.dart';
 import '../view_models/search_view_model.dart';
+import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -151,20 +152,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                     const Icon(Icons.error),
                               ),
                               if (perf.isSoldOut)
-                                Positioned.fill(
-                                  child: Container(
-                                    width: 60,
-                                    height: 80,
-                                    color: Colors.black.withValues(alpha: 0.6),
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      '매진',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
+                                const Positioned.fill(
+                                  child: SoldOutStamp(
+                                    size: StampSize.compact,
+                                    showOverlay: false,
                                   ),
                                 ),
                             ],

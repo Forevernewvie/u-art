@@ -6,6 +6,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../view_models/home_view_model.dart';
 import 'widgets/kopis_disclaimer.dart';
+import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -68,35 +69,8 @@ class HomeScreen extends ConsumerWidget {
                                       const Icon(Icons.error),
                                 ),
                                 if (perf.isSoldOut)
-                                  Positioned.fill(
-                                    child: Container(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.6,
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 8,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.red.withValues(
-                                            alpha: 0.9,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          'SOLD OUT',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                  const SoldOutStamp(
+                                    size: StampSize.regular,
                                   ),
                                 Positioned(
                                   bottom: 0,
@@ -133,16 +107,18 @@ class HomeScreen extends ConsumerWidget {
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 18,
                                               ),
-                                              maxLines: 2,
+                                              maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
-                                            const SizedBox(height: 4),
+                                            const SizedBox(height: 2),
                                             Text(
-                                              '${perf.startDate} ~ ${perf.endDate}',
+                                              '${perf.startDate} ~ ${perf.endDate} | ${perf.venue}',
                                               style: const TextStyle(
-                                                color: Colors.white54,
+                                                color: Colors.white60,
                                                 fontSize: 12,
                                               ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
                                         ),
@@ -159,20 +135,17 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SliverToBoxAdapter(
+              SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '다가오는 공연',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Text(
+                    '최근 14일간 공연',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -181,7 +154,7 @@ class HomeScreen extends ConsumerWidget {
                   final perf = listItems[index];
                   return ListTile(
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
+                      horizontal: 16,
                       vertical: 8,
                     ),
                     leading: Hero(
@@ -199,20 +172,10 @@ class HomeScreen extends ConsumerWidget {
                                   const Icon(Icons.error),
                             ),
                             if (perf.isSoldOut)
-                              Positioned.fill(
-                                child: Container(
-                                  width: 60,
-                                  height: 80,
-                                  color: Colors.black.withValues(alpha: 0.6),
-                                  alignment: Alignment.center,
-                                  child: const Text(
-                                    '매진',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
+                              const Positioned.fill(
+                                child: SoldOutStamp(
+                                  size: StampSize.compact,
+                                  showOverlay: false,
                                 ),
                               ),
                           ],
