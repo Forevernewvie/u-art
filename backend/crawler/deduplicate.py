@@ -107,6 +107,19 @@ def run_deduplication(dry_run=False, uri=None):
             update_fields["state"] = "매진"
             update_fields["isSoldOut"] = True
 
+        # Synthesize price and venue from other members if master is missing them
+        if not master.get("price") or master.get("price") == "무료":
+            for other in others:
+                if other.get("price") and other.get("price") != "무료":
+                    update_fields["price"] = other.get("price")
+                    break
+
+        if "(" not in master.get("venue", ""):
+            for other in others:
+                if "(" in other.get("venue", ""):
+                    update_fields["venue"] = other.get("venue")
+                    break
+
         print(f"  -> Merging {len(group)} docs into: '{master.get('title')}' (date: {master.get('startDate')})")
         for o in others:
             print(f"     - Removing duplicate: '{o.get('title')}' (id: {o.get('id')}, source: {o.get('source')})")

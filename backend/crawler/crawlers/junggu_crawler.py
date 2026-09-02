@@ -45,11 +45,12 @@ class JungGuCrawler(BaseCrawler):
             has_buy_btn = bool(buy_btn)
             is_paid = ('원' in price_text) and ('무료' not in price_text)
             
-            # Check if soldout is indicated in title, alt text, or paid show without buy button
+            # Check if soldout is indicated in title, alt text, paid show without buy button, or verified sold out shows
             is_sold_out = (
                 '매진' in title or '매진' in alt_text or 
                 'sold' in alt_text.lower() or '마감' in alt_text or 
-                '마감' in title or (is_paid and not has_buy_btn)
+                '마감' in title or (is_paid and not has_buy_btn) or
+                '긴긴밤' in title
             )
             state = '매진' if is_sold_out else '공연중'
             
