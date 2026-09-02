@@ -143,6 +143,58 @@ void main() {
         expect(find.text('SOLD OUT'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'DetailScreen with no booking link displays venue inquiry button and tapping it opens dialog',
+      (tester) async {
+        final inquiryDetail = PerformanceDetail(
+          id: 'detail_inquiry',
+          title: '울산 시민 무료 합창제',
+          startDate: '2026.09.10',
+          endDate: '2026.09.10',
+          venue: '울산문화예술회관 야외공연장',
+          cast: '울산시립합창단',
+          runtime: '90분',
+          timeGuidance: '오후 7시 30분',
+          ageLimit: '전체 관람가',
+          price: '전석 무료',
+          posterUrl: '',
+          genre: '음악',
+          state: '공연예정',
+          district: '남구',
+          bookingLinks: [],
+          detailImages: [],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              detailViewModelProvider(
+                'detail_inquiry',
+              ).overrideWith(() => MockDetailViewModel(inquiryDetail)),
+              bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
+            ],
+            child: const MaterialApp(home: DetailScreen(id: 'detail_inquiry')),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.text('현장 발권 / 공연장 문의 요망'), findsOneWidget);
+        await tester.tap(find.text('현장 발권 / 공연장 문의 요망'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('예매 안내'), findsOneWidget);
+        expect(
+          find.textContaining('온라인 예매처가 별도로 등록되지 않은 공연입니다'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('확인'));
+        await tester.pumpAndSettle();
+        expect(find.text('예매 안내'), findsNothing);
+      },
+    );
   });
 
   group('SoldOutStamp Widget Tests', () {

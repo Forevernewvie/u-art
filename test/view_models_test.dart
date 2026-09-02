@@ -70,6 +70,10 @@ void main() {
 
       final state = await container.read(homeViewModelProvider.future);
       expect(state, isEmpty);
+
+      await container.read(homeViewModelProvider.notifier).refresh();
+      final refreshedState = await container.read(homeViewModelProvider.future);
+      expect(refreshedState, isEmpty);
     });
 
     test('BookmarkNotifier toggles bookmark', () async {
