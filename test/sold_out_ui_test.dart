@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:u_art/data/models/performance.dart';
 import 'package:u_art/ui/features/detail/views/detail_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 import 'package:u_art/ui/features/detail/view_models/detail_view_model.dart';
 import 'package:u_art/ui/features/bookmark/view_models/bookmark_view_model.dart';
 
@@ -64,10 +65,38 @@ void main() {
       );
       expect(activePerf.isSoldOut, isFalse);
     });
+
+    test('fromJson correctly parses isSoldOut field and states', () {
+      final json1 = {
+        'id': 'j1',
+        'title': '매진 공연',
+        'isSoldOut': true,
+        'state': '공연중',
+      };
+      final perf1 = Performance.fromJson(json1);
+      expect(perf1.isSoldOut, isTrue);
+
+      final json2 = {
+        'id': 'j2',
+        'title': '마감 공연',
+        'state': '예매마감',
+      };
+      final perf2 = Performance.fromJson(json2);
+      expect(perf2.isSoldOut, isTrue);
+
+      final detailJson = {
+        'id': 'd1',
+        'title': '상세 매진 공연',
+        'isSoldOut': true,
+        'state': '공연중',
+      };
+      final detail1 = PerformanceDetail.fromJson(detailJson);
+      expect(detail1.isSoldOut, isTrue);
+    });
   });
 
   group('DetailScreen Sold Out UI Tests', () {
-    testWidgets('DetailScreen displays disabled button for sold out performance', (
+    testWidgets('DetailScreen displays disabled button and SoldOutStamp for sold out performance', (
       tester,
     ) async {
       final soldOutDetail = PerformanceDetail(
@@ -113,6 +142,30 @@ void main() {
         find.byType(ElevatedButton),
       );
       expect(elevatedButton.onPressed, isNull);
+
+      // Verify SoldOutStamp is rendered on poster
+      expect(find.text('SOLD OUT'), findsOneWidget);
+    });
+  });
+
+  group('SoldOutStamp Widget Tests', () {
+    testWidgets('renders all stamp sizes correctly', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                SoldOutStamp(size: StampSize.compact, showOverlay: false),
+                SoldOutStamp(size: StampSize.regular, showOverlay: false),
+                SoldOutStamp(size: StampSize.large, showOverlay: false),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('매진'), findsNWidgets(3));
+      expect(find.text('SOLD OUT'), findsNWidgets(3));
     });
   });
 }
