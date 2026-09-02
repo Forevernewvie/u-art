@@ -39,12 +39,21 @@ class JungGuCrawler(BaseCrawler):
             sub_venue = where_el.text.strip() if where_el else ''
             venue = f"중구문화의전당 {sub_venue}".strip() if sub_venue else "중구문화의전당"
             
-            # Check if soldout is indicated in title, alt text, or tags
-            is_sold_out = '매진' in title or '매진' in alt_text or 'sold' in alt_text.lower() or '마감' in alt_text or '마감' in title
+            price_el = li.select_one('.price_info')
+            price_text = price_el.text.strip() if price_el else ''
+            buy_btn = li.select_one('.buy_ticket_btn')
+            has_buy_btn = bool(buy_btn)
+            is_paid = ('원' in price_text) and ('무료' not in price_text)
+            
+            # Check if soldout is indicated in title, alt text, or paid show without buy button
+            is_sold_out = (
+                '매진' in title or '매진' in alt_text or 
+                'sold' in alt_text.lower() or '마감' in alt_text or 
+                '마감' in title or (is_paid and not has_buy_btn)
+            )
             state = '매진' if is_sold_out else '공연중'
             
             booking_links = []
-            buy_btn = li.select_one('.buy_ticket_btn')
             if buy_btn:
                 booking_links.append({
                     "name": "중구문화의전당 예매",
