@@ -34,8 +34,10 @@ class KopisCrawler(BaseCrawler):
         root = ET.fromstring(resp.text)
         for node in root.findall('db'):
             venue = node.findtext('fcltynm') or ""
+            mt20id = node.findtext('mt20id')
             perf = {
-                "id": node.findtext('mt20id'),
+                "id": mt20id,
+                "kopisId": mt20id,
                 "title": node.findtext('prfnm'),
                 "startDate": node.findtext('prfpdfrom'),
                 "endDate": node.findtext('prfpdto'),

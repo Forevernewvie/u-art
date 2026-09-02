@@ -47,8 +47,10 @@ class SearchViewModel extends _$SearchViewModel {
           .getPerformances(stdate: stdateStr, eddate: eddateStr)
           .timeout(const Duration(milliseconds: 1500));
       if (list.isNotEmpty) {
-        list.sort((a, b) => a.startDate.compareTo(b.startDate));
-        return list;
+        final seenIds = <String>{};
+        final deduped = list.where((p) => seenIds.add(p.id)).toList();
+        deduped.sort((a, b) => a.startDate.compareTo(b.startDate));
+        return deduped;
       }
       throw Exception('Empty backend response');
     } catch (_) {
