@@ -168,7 +168,13 @@ class PerformanceDetail {
       runtime: json['runtime'] ?? '',
       timeGuidance: json['timeGuidance'] ?? '',
       ageLimit: json['ageLimit'] ?? '전체관람가',
-      price: json['price'] ?? '무료',
+      price: () {
+        final p = json['price']?.toString().trim();
+        if (p != null && p.isNotEmpty && p != 'None' && p != 'null') {
+          return p;
+        }
+        return '공연장/기획사 문의';
+      }(),
       posterUrl: json['posterUrl'] ?? '',
       genre: json['genre'] ?? '',
       state:
@@ -244,7 +250,17 @@ class PerformanceDetail {
       timeGuidance:
           node.findElements('dtguidance').firstOrNull?.innerText ?? '',
       ageLimit: node.findElements('prfage').firstOrNull?.innerText ?? '',
-      price: node.findElements('pcseguidance').firstOrNull?.innerText ?? '',
+      price: () {
+        final p = node
+            .findElements('pcseguidance')
+            .firstOrNull
+            ?.innerText
+            .trim();
+        if (p != null && p.isNotEmpty && p != 'None' && p != 'null') {
+          return p;
+        }
+        return '공연장/기획사 문의';
+      }(),
       posterUrl: node.findElements('poster').firstOrNull?.innerText ?? '',
       genre: node.findElements('genrenm').firstOrNull?.innerText ?? '',
       state: node.findElements('prfstate').firstOrNull?.innerText ?? '',

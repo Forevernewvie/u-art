@@ -214,6 +214,93 @@ void main() {
         expect(merged.venue, '울산문화예술회관 (대공연장)');
       },
     );
+
+    test('PerformanceDetail.fromJson prevents false free price fallback', () {
+      final nullPriceDetail = PerformanceDetail.fromJson({
+        'id': 'PF99',
+        'title': '임윤찬 리사이틀',
+        'price': null,
+      });
+      expect(nullPriceDetail.price, '공연장/기획사 문의');
+
+      final nonePriceDetail = PerformanceDetail.fromJson({
+        'id': 'PF99',
+        'title': '임윤찬 리사이틀',
+        'price': 'None',
+      });
+      expect(nonePriceDetail.price, '공연장/기획사 문의');
+
+      final freeDetail = PerformanceDetail.fromJson({
+        'id': 'PF99',
+        'title': '울산시민 무료음악회',
+        'price': '전석 무료',
+      });
+      expect(freeDetail.price, '전석 무료');
+
+      final paidDetail = PerformanceDetail.fromJson({
+        'id': 'PF99',
+        'title': '임윤찬 리사이틀',
+        'price': 'R석 150,000원',
+      });
+      expect(paidDetail.price, 'R석 150,000원');
+    });
+
+    test(
+      'getPerformanceDetail enriches missing price and booking links for KOPIS ID',
+      () async {
+        final backendDoc = PerformanceDetail(
+          id: 'PF299102',
+          title: '임윤찬 피아노 리사이틀 [울산]',
+          startDate: '2026.10.06',
+          endDate: '2026.10.06',
+          venue: 'HD아트센터(구 현대예술관)',
+          cast: '임윤찬',
+          runtime: '100분',
+          timeGuidance: '19:30',
+          ageLimit: '만 7세 이상',
+          price: '공연장/기획사 문의', // missing in backend
+          posterUrl: '',
+          genre: '클래식',
+          state: '공연예정',
+          district: '동구',
+          bookingLinks: [], // missing in backend
+          detailImages: [],
+        );
+
+        final kopisDoc = PerformanceDetail(
+          id: 'PF299102',
+          title: '임윤찬 피아노 리사이틀 [울산]',
+          startDate: '2026.10.06',
+          endDate: '2026.10.06',
+          venue: 'HD아트센터(구 현대예술관)',
+          cast: '임윤찬',
+          runtime: '100분',
+          timeGuidance: '19:30',
+          ageLimit: '만 7세 이상',
+          price: 'R석 150,000원, S석 135,000원',
+          posterUrl: 'http://kopis.or.kr/poster.jpg',
+          genre: '클래식',
+          state: '공연예정',
+          district: '동구',
+          bookingLinks: [
+            BookingLink(name: '현대예술관', url: 'https://www.hd-artscenter.co.kr'),
+          ],
+          detailImages: [],
+        );
+
+        when(
+          mockService.getPerformanceDetail('PF299102'),
+        ).thenAnswer((_) async => backendDoc);
+        when(
+          mockKopis.getPerformanceDetail('PF299102'),
+        ).thenAnswer((_) async => kopisDoc);
+
+        final enriched = await repo.getPerformanceDetail('PF299102');
+        expect(enriched.price, 'R석 150,000원, S석 135,000원');
+        expect(enriched.bookingLinks.length, 1);
+        expect(enriched.bookingLinks.first.name, '현대예술관');
+      },
+    );
   });
 
   group('Robustness: SearchViewModel Date Calculation', () {

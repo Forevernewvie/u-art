@@ -216,58 +216,83 @@ class DetailScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              if (hasBooking || detail.isSoldOut)
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.95),
-                          Colors.black.withValues(alpha: 0.0),
-                        ],
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.95),
+                        Colors.black.withValues(alpha: 0.0),
+                      ],
+                    ),
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: detail.isSoldOut
+                        ? null
+                        : hasBooking
+                        ? () => _handleBooking(context, detail.bookingLinks)
+                        : () => _showNoBookingDialog(context, detail),
+                    icon: Icon(
+                      detail.isSoldOut
+                          ? Icons.block
+                          : hasBooking
+                          ? (detail.bookingLinks.any(
+                                  (l) =>
+                                      l.name.contains('안내') ||
+                                      l.name.contains('공식'),
+                                )
+                                ? Icons.open_in_new
+                                : Icons.confirmation_number)
+                          : Icons.info_outline,
+                      size: 22,
+                    ),
+                    label: Text(
+                      detail.isSoldOut
+                          ? '매진 (Sold Out)'
+                          : hasBooking
+                          ? (detail.bookingLinks.length > 1
+                                ? '예매처 바로가기 (${detail.bookingLinks.length}곳)'
+                                : (detail.bookingLinks.first.name.contains(
+                                            '안내',
+                                          ) ||
+                                          detail.bookingLinks.first.name
+                                              .contains('홈페이지')
+                                      ? '공연장 안내 바로가기 (${detail.bookingLinks.first.name})'
+                                      : '지금 예매하기 (${detail.bookingLinks.first.name})'))
+                          : '현장 발권 / 공연장 문의 요망',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    child: ElevatedButton.icon(
-                      onPressed: detail.isSoldOut
-                          ? null
-                          : () => _handleBooking(context, detail.bookingLinks),
-                      icon: Icon(
-                        detail.isSoldOut
-                            ? Icons.block
-                            : Icons.confirmation_number,
-                        size: 22,
-                      ),
-                      label: Text(
-                        detail.isSoldOut
-                            ? '매진 (Sold Out)'
-                            : detail.bookingLinks.length > 1
-                            ? '예매처 바로가기 (${detail.bookingLinks.length}곳)'
-                            : '지금 예매하기 (${detail.bookingLinks.first.name})',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                        disabledBackgroundColor: Colors.grey.shade900,
-                        disabledForegroundColor: Colors.white54,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        elevation: 6,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: detail.isSoldOut
+                          ? Colors.grey.shade900
+                          : hasBooking
+                          ? Colors.white
+                          : const Color(0xFF2C2C2E),
+                      foregroundColor: detail.isSoldOut
+                          ? Colors.white54
+                          : hasBooking
+                          ? Colors.black
+                          : Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade900,
+                      disabledForegroundColor: Colors.white54,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                   ),
                 ),
+              ),
             ],
           );
         },
@@ -349,6 +374,44 @@ class DetailScreen extends ConsumerWidget {
         },
       );
     }
+  }
+
+  void _showNoBookingDialog(BuildContext context, PerformanceDetail detail) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, color: Color(0xFF64FFDA)),
+            SizedBox(width: 8),
+            Text(
+              '예매 안내',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          '온라인 예매처가 별도로 등록되지 않은 공연입니다.\n\n공연장(${detail.venue}) 현장 발권 또는 유선 문의를 통해 관람 가능 여부를 확인해주시기 바랍니다.',
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('확인', style: TextStyle(color: Color(0xFF64FFDA))),
+          ),
+        ],
+      ),
+    );
   }
 
   void _launchUrl(String urlString) async {

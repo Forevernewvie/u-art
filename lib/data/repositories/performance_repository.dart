@@ -266,6 +266,51 @@ class PerformanceRepository {
       detail = await _kopisService.getPerformanceDetail(id);
     }
 
+    // Auto-enrich KOPIS performances with official price and booking links if missing
+    if (id.startsWith('PF') &&
+        (detail.price == '공연장/기획사 문의' || detail.bookingLinks.isEmpty)) {
+      try {
+        final kopisDetail = await _kopisService.getPerformanceDetail(id);
+        final enrichedPrice =
+            (kopisDetail.price.isNotEmpty && kopisDetail.price != '공연장/기획사 문의')
+            ? kopisDetail.price
+            : detail.price;
+        final enrichedLinks = detail.bookingLinks.isNotEmpty
+            ? detail.bookingLinks
+            : kopisDetail.bookingLinks;
+        detail = PerformanceDetail(
+          id: detail.id,
+          title: detail.title,
+          startDate: detail.startDate,
+          endDate: detail.endDate,
+          venue: detail.venue.isNotEmpty ? detail.venue : kopisDetail.venue,
+          cast: detail.cast.isNotEmpty && detail.cast != '출연진 정보 없음'
+              ? detail.cast
+              : kopisDetail.cast,
+          runtime: detail.runtime.isNotEmpty
+              ? detail.runtime
+              : kopisDetail.runtime,
+          timeGuidance: detail.timeGuidance.isNotEmpty
+              ? detail.timeGuidance
+              : kopisDetail.timeGuidance,
+          ageLimit: detail.ageLimit.isNotEmpty
+              ? detail.ageLimit
+              : kopisDetail.ageLimit,
+          price: enrichedPrice,
+          posterUrl: detail.posterUrl.isNotEmpty
+              ? detail.posterUrl
+              : kopisDetail.posterUrl,
+          genre: detail.genre.isNotEmpty ? detail.genre : kopisDetail.genre,
+          state: detail.state,
+          district: detail.district,
+          bookingLinks: enrichedLinks,
+          detailImages: detail.detailImages.isNotEmpty
+              ? detail.detailImages
+              : kopisDetail.detailImages,
+        );
+      } catch (_) {}
+    }
+
     if (detail.venue.contains('중구') ||
         detail.venue.contains('함월홀') ||
         detail.venue.contains('달빛마루')) {

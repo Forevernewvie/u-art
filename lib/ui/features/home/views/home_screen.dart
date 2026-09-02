@@ -171,7 +171,10 @@ class HomeScreen extends ConsumerWidget {
                             const Positioned(
                               top: -4,
                               right: -4,
-                              child: SoldOutStamp(size: StampSize.compact),
+                              child: SoldOutStamp(
+                                size: StampSize.compact,
+                                showOverlay: false,
+                              ),
                             ),
                         ],
                       ),
