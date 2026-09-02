@@ -301,6 +301,48 @@ void main() {
         expect(enriched.bookingLinks.first.name, '현대예술관');
       },
     );
+
+    test(
+      'getPerformanceDetail always prioritizes Junggu official booking link as primary link',
+      () async {
+        final jungguDoc = PerformanceDetail(
+          id: 'PF_JUNGGU_01',
+          title: '중구 클래식 연주회',
+          startDate: '2026.10.01',
+          endDate: '2026.10.01',
+          venue: '중구문화의전당 함월홀',
+          cast: '',
+          runtime: '',
+          timeGuidance: '',
+          ageLimit: '전체 관람가',
+          price: '전석 무료',
+          posterUrl: '',
+          genre: '클래식',
+          state: '공연예정',
+          district: '중구',
+          bookingLinks: [
+            BookingLink(
+              name: '인터파크 티켓 검색',
+              url: 'https://tickets.interpark.com/search?keyword=test',
+            ),
+          ],
+          detailImages: [],
+        );
+
+        when(
+          mockService.getPerformanceDetail('PF_JUNGGU_01'),
+        ).thenAnswer((_) async => jungguDoc);
+
+        final result = await repo.getPerformanceDetail('PF_JUNGGU_01');
+        expect(result.bookingLinks.first.name, '중구문화의전당 공식 예매');
+        expect(
+          result.bookingLinks.first.url,
+          'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
+        );
+        expect(result.bookingLinks.length, 2);
+        expect(result.bookingLinks[1].name, '인터파크 티켓 검색');
+      },
+    );
   });
 
   group('Robustness: SearchViewModel Date Calculation', () {

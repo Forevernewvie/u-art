@@ -209,6 +209,47 @@ class DetailScreen extends ConsumerWidget {
                                 ),
                               ),
                             ),
+                          ] else if (detail.venue.contains('중구') ||
+                              detail.venue.contains('함월홀') ||
+                              detail.venue.contains('달빛마루')) ...[
+                            const SizedBox(height: 32),
+                            const Text(
+                              '공연 상세 안내',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E1E1E),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              child: const Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    color: Color(0xFF64FFDA),
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      '중구문화의전당 공식 공연입니다.\n상세 프로그램 및 출연진 정보는 하단 공식 사이트 버튼을 통해 확인해 주세요.',
+                                      style: TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 14,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ],
                       ),

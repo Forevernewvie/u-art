@@ -221,11 +221,13 @@ class PerformanceDetail {
         parsedLinks.add(
           BookingLink(name: '울산문화예술회관 공식 예매', url: 'https://ucac.ulsan.go.kr'),
         );
-      } else if (venue.contains('중구문화의전당')) {
+      } else if (venue.contains('중구문화의전당') ||
+          venue.contains('함월홀') ||
+          venue.contains('달빛마루')) {
         parsedLinks.add(
           BookingLink(
             name: '중구문화의전당 공식 예매',
-            url: 'https://artscenter.junggu.ulsan.kr',
+            url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
           ),
         );
       } else {

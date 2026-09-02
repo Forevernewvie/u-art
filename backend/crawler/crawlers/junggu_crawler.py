@@ -58,7 +58,7 @@ class JungGuCrawler(BaseCrawler):
             if buy_btn:
                 booking_links.append({
                     "name": "중구문화의전당 예매",
-                    "url": "https://artscenter.junggu.ulsan.kr"
+                    "url": "https://artscenter.junggu.ulsan.kr/01_Menu/01.do"
                 })
             
             norm_title = re.sub(r'[\s\W_]+', '', title)

@@ -195,6 +195,61 @@ void main() {
         expect(find.text('예매 안내'), findsNothing);
       },
     );
+
+    testWidgets(
+      'DetailScreen displays Junggu notice card when detailImages is empty for Junggu venue',
+      (tester) async {
+        final jungguDetail = PerformanceDetail(
+          id: 'detail_junggu_sparse',
+          title: '중구 연주회',
+          startDate: '2026.09.20',
+          endDate: '2026.09.20',
+          venue: '중구문화의전당 함월홀',
+          cast: '',
+          runtime: '',
+          timeGuidance: '',
+          ageLimit: '전체 관람가',
+          price: '전석 무료',
+          posterUrl: '',
+          genre: '음악',
+          state: '공연예정',
+          district: '중구',
+          bookingLinks: [
+            BookingLink(
+              name: '중구문화의전당 공식 예매',
+              url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
+            ),
+          ],
+          detailImages: [],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              detailViewModelProvider(
+                'detail_junggu_sparse',
+              ).overrideWith(() => MockDetailViewModel(jungguDetail)),
+              bookmarkProvider.overrideWith(() => MockBookmarkNotifier([])),
+            ],
+            child: const MaterialApp(
+              home: DetailScreen(id: 'detail_junggu_sparse'),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.text('공연 상세 안내'), findsOneWidget);
+        expect(
+          find.textContaining('중구문화의전당 공식 공연입니다'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('지금 예매하기 (중구문화의전당 공식 예매)'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 
   group('SoldOutStamp Widget Tests', () {

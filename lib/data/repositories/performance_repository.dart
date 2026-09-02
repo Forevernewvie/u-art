@@ -332,52 +332,63 @@ class PerformanceRepository {
     if (detail.venue.contains('중구') ||
         detail.venue.contains('함월홀') ||
         detail.venue.contains('달빛마루')) {
+      var isSoldOut = detail.isSoldOut;
       try {
         final statuses = await _jungguService.fetchSoldOutStatuses();
-        final isSoldOut = JungguCrawlerService.isTitleSoldOut(
+        isSoldOut = JungguCrawlerService.isTitleSoldOut(
           detail.title,
           statuses,
         );
+      } catch (e) {
+        debugPrint('Failed to enrich Junggu sold out status: $e');
+      }
 
-        // Ensure price is accurate for known performances
-        var price = detail.price;
-        if ((price == '무료' || price.isEmpty) && detail.title.contains('긴긴밤')) {
-          price = '일반 10,000원';
-        }
+      // Ensure price is accurate for known performances
+      var price = detail.price;
+      if ((price == '무료' || price.isEmpty) && detail.title.contains('긴긴밤')) {
+        price = '일반 10,000원';
+      }
 
-        var links = List<BookingLink>.from(detail.bookingLinks);
-        if (links.isEmpty && detail.venue.contains('중구')) {
-          links = [
-            BookingLink(
-              name: '중구문화의전당 공식 예매',
-              url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
-            ),
-          ];
-        }
+      final jungguOfficialLink = BookingLink(
+        name: '중구문화의전당 공식 예매',
+        url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
+      );
 
-        if (isSoldOut ||
-            price != detail.price ||
-            links.length != detail.bookingLinks.length) {
-          return PerformanceDetail(
-            id: detail.id,
-            title: detail.title,
-            startDate: detail.startDate,
-            endDate: detail.endDate,
-            venue: detail.venue,
-            cast: detail.cast,
-            runtime: detail.runtime,
-            timeGuidance: detail.timeGuidance,
-            ageLimit: detail.ageLimit,
-            price: price,
-            posterUrl: detail.posterUrl,
-            genre: detail.genre,
-            state: isSoldOut ? '매진' : detail.state,
-            district: detail.district,
-            bookingLinks: links,
-            detailImages: detail.detailImages,
-          );
-        }
-      } catch (_) {}
+      final filteredOtherLinks = detail.bookingLinks.where(
+        (l) =>
+            !l.url.contains('artscenter.junggu.ulsan.kr') &&
+            l.name != '중구문화의전당 공식 예매',
+      ).toList();
+
+      final updatedLinks = [jungguOfficialLink, ...filteredOtherLinks];
+
+      final hasLinkChanged =
+          updatedLinks.length != detail.bookingLinks.length ||
+          detail.bookingLinks.isEmpty ||
+          detail.bookingLinks.first.url != jungguOfficialLink.url;
+
+      if (isSoldOut != detail.isSoldOut ||
+          price != detail.price ||
+          hasLinkChanged) {
+        return PerformanceDetail(
+          id: detail.id,
+          title: detail.title,
+          startDate: detail.startDate,
+          endDate: detail.endDate,
+          venue: detail.venue,
+          cast: detail.cast,
+          runtime: detail.runtime,
+          timeGuidance: detail.timeGuidance,
+          ageLimit: detail.ageLimit,
+          price: price,
+          posterUrl: detail.posterUrl,
+          genre: detail.genre,
+          state: isSoldOut ? '매진' : detail.state,
+          district: detail.district,
+          bookingLinks: updatedLinks,
+          detailImages: detail.detailImages,
+        );
+      }
     }
 
     return detail;
