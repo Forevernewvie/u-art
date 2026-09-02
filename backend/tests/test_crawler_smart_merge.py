@@ -69,7 +69,7 @@ def test_smart_merge_kopis_first_then_crawled():
 
     # Should NOT insert a new document, but merge booking links into the KOPIS document
     assert mock_db.performances.count_documents({}) == 1
-    merged = mock_db.performances.find_one({"startDate": "2026-09-15"})
+    merged = mock_db.performances.find_one({"startDate": "2026.09.15"})
     assert merged["source"] == "KOPIS"
     assert merged["title"] == "라푼젤 어린이 뮤지컬" # KOPIS title preserved
     assert merged["posterUrl"] == "http://kopis.or.kr/poster.jpg" # KOPIS poster preserved
@@ -116,7 +116,7 @@ def test_smart_merge_crawled_first_then_kopis():
     crawler.save_performance(kopis_data)
 
     assert mock_db.performances.count_documents({}) == 1
-    merged = mock_db.performances.find_one({"startDate": "2026-10-01"})
+    merged = mock_db.performances.find_one({"startDate": "2026.10.01"})
     assert merged["source"] == "KOPIS"
     assert merged["genre"] == "클래식"
     assert merged["posterUrl"] == "http://kopis.or.kr/high_res.jpg"
@@ -144,7 +144,7 @@ def test_duplicate_booking_link_prevention():
     # Re-run same crawling
     crawler.save_performance(data)
 
-    merged = mock_db.performances.find_one({"startDate": "2026-11-11"})
+    merged = mock_db.performances.find_one({"startDate": "2026.11.11"})
     assert len(merged["bookingLinks"]) == 1
 
 def test_crawler_error_resilience():
@@ -196,7 +196,80 @@ def test_smart_merge_sold_out_propagation():
     }
     crawler.save_performance(crawled_data)
 
-    merged = mock_db.performances.find_one({"startDate": "2026-09-11"})
+    merged = mock_db.performances.find_one({"startDate": "2026.09.11"})
     assert merged["state"] == "매진"
     assert merged["isSoldOut"] is True
+
+def test_smart_merge_date_and_venue_variations():
+    """Matching should succeed even when dates use '-' vs '.' and venue names contain subvenues"""
+    mock_db = mongomock.MongoClient().uart
+    crawler = MockBaseCrawler(mock_db)
+
+    # 1. KOPIS doc uses hyphenated date and simple venue
+    kopis_data = {
+        "id": "PF_YANGPA",
+        "title": "양파X전진희 콘서트: 노래가 된 우리 [울산]",
+        "startDate": "2026-09-11",
+        "endDate": "2026-09-11",
+        "venue": "울산중구문화의전당",
+        "source": "KOPIS",
+        "bookingLinks": [{"name": "인터파크", "url": "https://interpark.com/yangpa"}]
+    }
+    crawler.save_performance(kopis_data)
+
+    # 2. Crawled doc uses dot date and subvenue with parentheses
+    crawled_data = {
+        "title": "양파X전진희 콘서트 - 노래가 된 우리",
+        "startDate": "2026.09.11",
+        "endDate": "2026.09.11",
+        "venue": "중구문화의전당 (함월홀(2층))",
+        "source": "CRAWLED",
+        "state": "매진",
+        "isSoldOut": True,
+        "bookingLinks": [{"name": "중구문화의전당 공식 예매", "url": "https://artscenter.junggu.ulsan.kr/yangpa"}]
+    }
+    crawler.save_performance(crawled_data)
+
+    # Must be merged into ONE document!
+    assert mock_db.performances.count_documents({}) == 1
+    merged = mock_db.performances.find_one({"startDate": "2026.09.11"})
+    assert merged is not None
+    assert merged["state"] == "매진"
+    assert merged["isSoldOut"] is True
+    # Official venue booking link must be prioritized first
+    assert len(merged["bookingLinks"]) == 2
+    assert "공식" in merged["bookingLinks"][0]["name"] or "중구" in merged["bookingLinks"][0]["name"]
+    assert merged["bookingLinks"][0]["url"] == "https://artscenter.junggu.ulsan.kr/yangpa"
+
+def test_deduplicate_clusters_logic():
+    """Verify that multiple pre-existing duplicate documents are accurately resolved into 1 master record"""
+    from deduplicate import is_same_performance, merge_booking_links, canonical_date
+
+    doc1 = {
+        "_id": "id_kopis",
+        "title": "양파X전진희 콘서트: 노래가 된 우리 [울산]",
+        "startDate": "2026-09-11",
+        "venue": "울산중구문화의전당",
+        "source": "KOPIS",
+        "bookingLinks": [{"name": "인터파크", "url": "https://interpark.com/1"}]
+    }
+    doc2 = {
+        "_id": "id_crawled",
+        "title": "양파X전진희 콘서트 - 노래가 된 우리",
+        "startDate": "2026.09.11",
+        "venue": "중구문화의전당 (함월홀(2층))",
+        "source": "CRAWLED",
+        "state": "매진",
+        "isSoldOut": True,
+        "bookingLinks": [{"name": "중구문화의전당 공식 예매", "url": "https://artscenter.junggu.ulsan.kr/yangpa"}]
+    }
+
+    assert is_same_performance(doc1, doc2) is True
+
+    # Test booking link priority
+    links = merge_booking_links(doc2["bookingLinks"], doc1["bookingLinks"])
+    assert len(links) == 2
+    assert "공식" in links[0]["name"]
+
+
 
