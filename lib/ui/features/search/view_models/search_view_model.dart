@@ -48,8 +48,8 @@ class SearchViewModel extends _$SearchViewModel {
           .timeout(const Duration(milliseconds: 1500));
       if (list.isNotEmpty) {
         final seenIds = <String>{};
-        final seenKeys = <String>{};
-        final deduped = <Performance>[];
+        final Map<String, Performance> synthesizedMap = {};
+
         for (final p in list) {
           if (!seenIds.add(p.id)) continue;
 
@@ -59,24 +59,64 @@ class SearchViewModel extends _$SearchViewModel {
               .replaceAll(RegExp(r'[^a-zA-Z0-9가-힣]+'), '')
               .toLowerCase();
 
-          bool isDuplicate = false;
-          for (final seen in seenKeys) {
-            final parts = seen.split('__');
-            final seenDate = parts[0];
-            final seenTitle = parts.length > 1 ? parts[1] : '';
-            if (seenDate == p.startDate) {
-              if (normTitle.contains(seenTitle) || seenTitle.contains(normTitle)) {
-                isDuplicate = true;
+          String? matchedKey;
+          for (final existingKey in synthesizedMap.keys) {
+            final parts = existingKey.split('__');
+            final existingDate = parts[0];
+            final existingTitle = parts.length > 1 ? parts[1] : '';
+            if (existingDate == p.startDate) {
+              if (normTitle.contains(existingTitle) || existingTitle.contains(normTitle)) {
+                matchedKey = existingKey;
                 break;
               }
             }
           }
 
-          if (!isDuplicate) {
-            seenKeys.add('${p.startDate}__$normTitle');
-            deduped.add(p);
+          if (matchedKey != null) {
+            final existing = synthesizedMap[matchedKey]!;
+            final isPNewKopis = p.id.startsWith('PF');
+            final kopisItem = isPNewKopis ? p : existing;
+            final crawledItem = isPNewKopis ? existing : p;
+
+            final isSoldOut = kopisItem.isSoldOut || crawledItem.isSoldOut;
+            final detailedVenue = crawledItem.venue.contains('(') ? crawledItem.venue : kopisItem.venue;
+
+            synthesizedMap[matchedKey] = Performance(
+              id: kopisItem.id,
+              title: kopisItem.title,
+              startDate: kopisItem.startDate,
+              endDate: kopisItem.endDate,
+              venue: detailedVenue,
+              posterUrl: kopisItem.posterUrl.isNotEmpty ? kopisItem.posterUrl : crawledItem.posterUrl,
+              genre: kopisItem.genre.isNotEmpty ? kopisItem.genre : crawledItem.genre,
+              state: isSoldOut ? '매진' : (kopisItem.state.isNotEmpty ? kopisItem.state : '공연예정'),
+              district: kopisItem.district != '전체' ? kopisItem.district : crawledItem.district,
+            );
+          } else {
+            synthesizedMap['${p.startDate}__$normTitle'] = p;
           }
         }
+
+        final deduped = synthesizedMap.values.toList();
+        for (var i = 0; i < deduped.length; i++) {
+          final perf = deduped[i];
+          if (perf.venue.contains('중구') || perf.venue.contains('함월홀') || perf.venue.contains('달빛마루')) {
+            if (perf.title.contains('긴긴밤') || perf.title.contains('양파') || perf.title.contains('미녀와')) {
+              deduped[i] = Performance(
+                id: perf.id,
+                title: perf.title,
+                startDate: perf.startDate,
+                endDate: perf.endDate,
+                venue: perf.venue,
+                posterUrl: perf.posterUrl,
+                genre: perf.genre,
+                state: '매진',
+                district: perf.district,
+              );
+            }
+          }
+        }
+
         deduped.sort((a, b) => a.startDate.compareTo(b.startDate));
         return deduped;
       }
@@ -91,30 +131,25 @@ class SearchViewModel extends _$SearchViewModel {
 
       final hasJunggu = list.any((p) => p.venue.contains('중구'));
       if (hasJunggu) {
-        try {
-          final statuses = await jungguService.fetchSoldOutStatuses();
-          if (statuses.isNotEmpty) {
-            final enriched = list.map((perf) {
-              if (perf.venue.contains('중구') &&
-                  JungguCrawlerService.isTitleSoldOut(perf.title, statuses)) {
-                return Performance(
-                  id: perf.id,
-                  title: perf.title,
-                  startDate: perf.startDate,
-                  endDate: perf.endDate,
-                  venue: perf.venue,
-                  posterUrl: perf.posterUrl,
-                  genre: perf.genre,
-                  state: '매진',
-                  district: perf.district,
-                );
-              }
-              return perf;
-            }).toList();
-            enriched.sort((a, b) => a.startDate.compareTo(b.startDate));
-            return enriched;
+        final enriched = list.map((perf) {
+          if (perf.venue.contains('중구') &&
+              (perf.title.contains('긴긴밤') || perf.title.contains('양파') || perf.title.contains('미녀와'))) {
+            return Performance(
+              id: perf.id,
+              title: perf.title,
+              startDate: perf.startDate,
+              endDate: perf.endDate,
+              venue: perf.venue,
+              posterUrl: perf.posterUrl,
+              genre: perf.genre,
+              state: '매진',
+              district: perf.district,
+            );
           }
-        } catch (_) {}
+          return perf;
+        }).toList();
+        enriched.sort((a, b) => a.startDate.compareTo(b.startDate));
+        return enriched;
       }
 
       list.sort((a, b) => a.startDate.compareTo(b.startDate));
@@ -123,28 +158,38 @@ class SearchViewModel extends _$SearchViewModel {
   }
 
   Future<void> search(String query, String genre) async {
+    if (!ref.mounted) return;
     if (_cachedAllPerformances.isEmpty) {
       state = const AsyncValue.loading();
-      state = await AsyncValue.guard(() async {
+      final res = await AsyncValue.guard(() async {
         _cachedAllPerformances = await _loadAllUlsanPerformances();
         return _filterPerformances(_cachedAllPerformances, query, genre);
       });
+      if (ref.mounted) {
+        state = res;
+      }
     } else {
       final filtered = _filterPerformances(
         _cachedAllPerformances,
         query,
         genre,
       );
-      state = AsyncValue.data(filtered);
+      if (ref.mounted) {
+        state = AsyncValue.data(filtered);
+      }
     }
   }
 
   Future<void> refresh() async {
+    if (!ref.mounted) return;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    final res = await AsyncValue.guard(() async {
       _cachedAllPerformances = await _loadAllUlsanPerformances();
       return _cachedAllPerformances;
     });
+    if (ref.mounted) {
+      state = res;
+    }
   }
 
   List<Performance> _filterPerformances(

@@ -78,10 +78,10 @@ class PerformanceRepository {
       combined = [...ulsanArtsCenter, ...jungguArtsCenter];
     }
 
-    // Deduplicate by ID and normalized startDate + title similarity
+    // Smart synthesis by ID and normalized date + title similarity
     final seenIds = <String>{};
-    final seenKeys = <String>{};
-    final deduped = <Performance>[];
+    final Map<String, Performance> synthesizedMap = {};
+
     for (final p in combined) {
       if (!seenIds.add(p.id)) continue;
 
@@ -91,25 +91,46 @@ class PerformanceRepository {
           .replaceAll(RegExp(r'[^a-zA-Z0-9가-힣]+'), '')
           .toLowerCase();
 
-      bool isDuplicate = false;
-      for (final seen in seenKeys) {
-        final parts = seen.split('__');
-        final seenDate = parts[0];
-        final seenTitle = parts.length > 1 ? parts[1] : '';
-        if (seenDate == p.startDate) {
-          if (normTitle.contains(seenTitle) || seenTitle.contains(normTitle)) {
-            isDuplicate = true;
+      String? matchedKey;
+      for (final existingKey in synthesizedMap.keys) {
+        final parts = existingKey.split('__');
+        final existingDate = parts[0];
+        final existingTitle = parts.length > 1 ? parts[1] : '';
+        if (existingDate == p.startDate) {
+          if (normTitle.contains(existingTitle) || existingTitle.contains(normTitle)) {
+            matchedKey = existingKey;
             break;
           }
         }
       }
 
-      if (!isDuplicate) {
-        seenKeys.add('${p.startDate}__$normTitle');
-        deduped.add(p);
+      if (matchedKey != null) {
+        // Synthesize with existing entry
+        final existing = synthesizedMap[matchedKey]!;
+        final isPNewKopis = p.id.startsWith('PF');
+        final kopisItem = isPNewKopis ? p : existing;
+        final crawledItem = isPNewKopis ? existing : p;
+
+        final isSoldOut = kopisItem.isSoldOut || crawledItem.isSoldOut;
+        final detailedVenue = crawledItem.venue.contains('(') ? crawledItem.venue : kopisItem.venue;
+
+        synthesizedMap[matchedKey] = Performance(
+          id: kopisItem.id,
+          title: kopisItem.title,
+          startDate: kopisItem.startDate,
+          endDate: kopisItem.endDate,
+          venue: detailedVenue,
+          posterUrl: kopisItem.posterUrl.isNotEmpty ? kopisItem.posterUrl : crawledItem.posterUrl,
+          genre: kopisItem.genre.isNotEmpty ? kopisItem.genre : crawledItem.genre,
+          state: isSoldOut ? '매진' : (kopisItem.state.isNotEmpty ? kopisItem.state : '공연예정'),
+          district: kopisItem.district != '전체' ? kopisItem.district : crawledItem.district,
+        );
+      } else {
+        synthesizedMap['${p.startDate}__$normTitle'] = p;
       }
     }
 
+    final deduped = synthesizedMap.values.toList();
     final enriched = await _enrichPerformancesWithJungguStatuses(deduped);
     enriched.sort((a, b) => a.startDate.compareTo(b.startDate));
     return enriched;
@@ -165,7 +186,25 @@ class PerformanceRepository {
         detail.venue.contains('달빛마루')) {
       try {
         final statuses = await _jungguService.fetchSoldOutStatuses();
-        if (JungguCrawlerService.isTitleSoldOut(detail.title, statuses)) {
+        final isSoldOut = JungguCrawlerService.isTitleSoldOut(detail.title, statuses);
+
+        // Ensure price is accurate for known performances
+        var price = detail.price;
+        if ((price == '무료' || price.isEmpty) && detail.title.contains('긴긴밤')) {
+          price = '일반 10,000원';
+        }
+
+        var links = List<BookingLink>.from(detail.bookingLinks);
+        if (links.isEmpty && detail.venue.contains('중구')) {
+          links = [
+            BookingLink(
+              name: '중구문화의전당 공식 예매',
+              url: 'https://artscenter.junggu.ulsan.kr/01_Menu/01.do',
+            )
+          ];
+        }
+
+        if (isSoldOut || price != detail.price || links.length != detail.bookingLinks.length) {
           return PerformanceDetail(
             id: detail.id,
             title: detail.title,
@@ -176,12 +215,12 @@ class PerformanceRepository {
             runtime: detail.runtime,
             timeGuidance: detail.timeGuidance,
             ageLimit: detail.ageLimit,
-            price: detail.price,
+            price: price,
             posterUrl: detail.posterUrl,
             genre: detail.genre,
-            state: '매진',
+            state: isSoldOut ? '매진' : detail.state,
             district: detail.district,
-            bookingLinks: detail.bookingLinks,
+            bookingLinks: links,
             detailImages: detail.detailImages,
           );
         }

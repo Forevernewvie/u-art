@@ -178,8 +178,12 @@ class BaseCrawler(abc.ABC):
             )
 
             if new_source == "KOPIS" and existing_source == "CRAWLED":
-                # KOPIS overwrites CRAWLED metadata, but prioritize CRAWLED direct booking links & sold out status
+                # KOPIS overwrites CRAWLED metadata, but prioritize CRAWLED direct booking links, price, detailed venue & sold out status
                 perf["bookingLinks"] = merged_links
+                if not perf.get("price") and target_doc.get("price"):
+                    perf["price"] = target_doc.get("price")
+                if "(" in target_doc.get("venue", ""):
+                    perf["venue"] = target_doc.get("venue")
                 if is_sold_out:
                     perf["state"] = "매진"
                     perf["isSoldOut"] = True
@@ -187,11 +191,15 @@ class BaseCrawler(abc.ABC):
                 self.updated_count += 1
 
             elif new_source == "CRAWLED" and existing_source == "KOPIS":
-                # KOPIS baseline is preserved; update official direct links (1st) & sold out flag
+                # KOPIS baseline is preserved; update official direct links (1st), price, detailed venue & sold out flag
                 update_fields = {
                     "bookingLinks": merged_links,
                     "updatedAt": datetime.now()
                 }
+                if perf.get("price") and not target_doc.get("price"):
+                    update_fields["price"] = perf.get("price")
+                if "(" in perf.get("venue", "") and "(" not in target_doc.get("venue", ""):
+                    update_fields["venue"] = perf.get("venue")
                 if is_sold_out:
                     update_fields["state"] = "매진"
                     update_fields["isSoldOut"] = True
