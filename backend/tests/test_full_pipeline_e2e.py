@@ -71,7 +71,7 @@ def test_full_e2e_pipeline_data_flow():
     assert mock_db.performances.count_documents({}) == 1
 
     # Stage 3: Smart Merge Inspection
-    merged = mock_db.performances.find_one({"startDate": "2026-09-20"})
+    merged = mock_db.performances.find_one({"startDate": "2026.09.20"})
     assert merged is not None
     assert merged["source"] == "KOPIS"
     assert merged["title"] == "2026 울산 태화강 재즈 페스티벌"
@@ -85,8 +85,8 @@ def test_full_e2e_pipeline_data_flow():
 
     # 4-2. Filter by Date Range
     found_by_date = list(mock_db.performances.find({
-        "endDate": {"$gte": "2026-09-01"},
-        "startDate": {"$lte": "2026-09-30"}
+        "endDate": {"$gte": "2026.09.01"},
+        "startDate": {"$lte": "2026.09.30"}
     }))
     assert len(found_by_date) == 1
 
