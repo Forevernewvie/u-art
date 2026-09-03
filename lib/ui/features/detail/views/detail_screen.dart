@@ -320,8 +320,8 @@ class DetailScreen extends ConsumerWidget {
                                           ) ||
                                           detail.bookingLinks.first.name
                                               .contains('홈페이지')
-                                      ? '공연장 안내 바로가기 (${detail.bookingLinks.first.name})'
-                                      : '지금 예매하기 (${detail.bookingLinks.first.name})'))
+                                      ? '공연장 안내 바로가기'
+                                      : '지금 예매하기'))
                           : '현장 발권 / 공연장 문의 요망',
                       style: const TextStyle(
                         fontSize: 16,
