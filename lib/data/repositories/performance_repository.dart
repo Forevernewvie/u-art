@@ -13,8 +13,8 @@ part 'performance_repository.g.dart';
 
 @riverpod
 UartApiService uartApiService(Ref ref) {
-  // Linux Server backend endpoint
-  return UartApiService('http://172.30.1.43:3000');
+  // Linux Server backend endpoint (Docker port 8000)
+  return UartApiService('http://172.30.1.43:8000');
 }
 
 @riverpod

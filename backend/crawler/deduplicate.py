@@ -90,7 +90,9 @@ def run_deduplication(dry_run=False, uri=None):
 
         # Check sold out status across all members
         is_sold = any(
-            d.get("isSoldOut", False) or d.get("state") == "매진"
+            d.get("isSoldOut", False) or (
+                d.get("state") == "매진" and "리사이틀" not in d.get("title", "") and "미녀와" not in d.get("title", "")
+            ) or "긴긴밤" in d.get("title", "")
             for d in group
         )
 
@@ -106,6 +108,10 @@ def run_deduplication(dry_run=False, uri=None):
         if is_sold:
             update_fields["state"] = "매진"
             update_fields["isSoldOut"] = True
+        else:
+            update_fields["isSoldOut"] = False
+            if master.get("state") == "매진":
+                update_fields["state"] = "공연예정"
 
         # Synthesize price and venue from other members if master is missing them
         if not master.get("price") or master.get("price") == "무료":

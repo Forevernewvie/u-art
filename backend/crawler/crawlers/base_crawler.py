@@ -168,14 +168,17 @@ class BaseCrawler(abc.ABC):
             new_links = perf.get("bookingLinks", [])
             merged_links = merge_booking_links(new_links, all_existing_links)
 
-            # Sold out propagation across perf, target, and extra docs
-            is_sold_out = (
-                perf.get("isSoldOut", False) or
-                perf.get("state") == "매진" or
-                target_doc.get("isSoldOut", False) or
-                target_doc.get("state") == "매진" or
-                any(ex.get("isSoldOut", False) or ex.get("state") == "매진" for ex in extra_docs)
-            )
+            # Sold out propagation: fresh CRAWLED live inspection is authoritative
+            if new_source == "CRAWLED" and "isSoldOut" in perf:
+                is_sold_out = perf["isSoldOut"] or perf.get("state") == "매진"
+            else:
+                is_sold_out = (
+                    perf.get("isSoldOut", False) or
+                    perf.get("state") == "매진" or
+                    target_doc.get("isSoldOut", False) or
+                    target_doc.get("state") == "매진" or
+                    any(ex.get("isSoldOut", False) or ex.get("state") == "매진" for ex in extra_docs)
+                )
 
             if new_source == "KOPIS" and existing_source == "CRAWLED":
                 # KOPIS overwrites CRAWLED metadata, but prioritize CRAWLED direct booking links, price, detailed venue & sold out status
@@ -187,6 +190,8 @@ class BaseCrawler(abc.ABC):
                 if is_sold_out:
                     perf["state"] = "매진"
                     perf["isSoldOut"] = True
+                else:
+                    perf["isSoldOut"] = False
                 self.performances.replace_one({"_id": target_doc["_id"]}, perf)
                 self.updated_count += 1
 
@@ -203,6 +208,10 @@ class BaseCrawler(abc.ABC):
                 if is_sold_out:
                     update_fields["state"] = "매진"
                     update_fields["isSoldOut"] = True
+                else:
+                    update_fields["isSoldOut"] = False
+                    if target_doc.get("state") == "매진":
+                        update_fields["state"] = "공연예정"
                 self.performances.update_one(
                     {"_id": target_doc["_id"]},
                     {"$set": update_fields}
@@ -214,6 +223,8 @@ class BaseCrawler(abc.ABC):
                 if is_sold_out:
                     perf["state"] = "매진"
                     perf["isSoldOut"] = True
+                else:
+                    perf["isSoldOut"] = False
                 self.performances.replace_one({"_id": target_doc["_id"]}, perf)
                 self.updated_count += 1
 
