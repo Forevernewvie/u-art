@@ -48,7 +48,7 @@ final class UartApiServiceProvider
   }
 }
 
-String _$uartApiServiceHash() => r'71877ab891e1166a88ba41d97d7cf53ae26e88bc';
+String _$uartApiServiceHash() => r'bab82f0b562e1149d7f071b69629fc4b1a6d069e';
 
 @ProviderFor(performanceRepository)
 final performanceRepositoryProvider = PerformanceRepositoryProvider._();
@@ -96,4 +96,4 @@ final class PerformanceRepositoryProvider
 }
 
 String _$performanceRepositoryHash() =>
-    r'cbe89dbb6d9a6cf55c8c18579dd0c208678d0593';
+    r'be5b7e439021faaa03ce5fd13babe1485339fa40';

@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:u_art/data/models/performance.dart';
 import 'package:u_art/data/services/uart_api_service.dart';
 import 'package:u_art/data/services/kopis_service.dart';
-import 'package:u_art/data/services/junggu_crawler_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'performance_repository.g.dart';
@@ -22,14 +20,12 @@ PerformanceRepository performanceRepository(Ref ref) {
   return PerformanceRepository(
     ref.watch(uartApiServiceProvider),
     kopisService: KopisService('534331c08630453bbd1df50692635746'),
-    jungguService: JungguCrawlerService(),
   );
 }
 
 class PerformanceRepository {
   final UartApiService _service;
   final KopisService _kopisService;
-  final JungguCrawlerService _jungguService;
 
   static List<Performance>? _memoryCachedUpcoming;
   static DateTime? _lastCacheTime;
@@ -39,10 +35,8 @@ class PerformanceRepository {
   PerformanceRepository(
     this._service, {
     KopisService? kopisService,
-    JungguCrawlerService? jungguService,
   }) : _kopisService =
-           kopisService ?? KopisService('534331c08630453bbd1df50692635746'),
-       _jungguService = jungguService ?? JungguCrawlerService();
+           kopisService ?? KopisService('534331c08630453bbd1df50692635746');
 
   static void clearCache() {
     _memoryCachedUpcoming = null;
@@ -168,9 +162,8 @@ class PerformanceRepository {
     }
 
     final deduped = synthesizePerformances(combined);
-    final enriched = await _enrichPerformancesWithJungguStatuses(deduped);
-    enriched.sort((a, b) => a.startDate.compareTo(b.startDate));
-    return enriched;
+    deduped.sort((a, b) => a.startDate.compareTo(b.startDate));
+    return deduped;
   }
 
   static List<Performance> synthesizePerformances(List<Performance> list) {
@@ -239,41 +232,6 @@ class PerformanceRepository {
     return synthesizedMap.values.toList();
   }
 
-  Future<List<Performance>> _enrichPerformancesWithJungguStatuses(
-    List<Performance> performances,
-  ) async {
-    try {
-      final statuses = await _jungguService.fetchSoldOutStatuses();
-      if (statuses.isEmpty) return performances;
-
-      return performances.map((perf) {
-        if (perf.venue.contains('중구') ||
-            perf.venue.contains('함월홀') ||
-            perf.venue.contains('달빛마루')) {
-          if (JungguCrawlerService.isTitleSoldOut(perf.title, statuses)) {
-            final p = Performance(
-              id: perf.id,
-              title: perf.title,
-              startDate: perf.startDate,
-              endDate: perf.endDate,
-              venue: perf.venue,
-              posterUrl: perf.posterUrl,
-              genre: perf.genre,
-              state: '매진',
-              district: perf.district,
-            );
-            debugPrint('[U-Art] Enriched SOLD OUT: ${p.title}');
-            return p;
-          }
-        }
-        return perf;
-      }).toList();
-    } catch (e) {
-      debugPrint('[U-Art] Enrichment error: $e');
-      return performances;
-    }
-  }
-
   Future<PerformanceDetail> getPerformanceDetail(String id) async {
     PerformanceDetail detail;
     try {
@@ -332,17 +290,6 @@ class PerformanceRepository {
     if (detail.venue.contains('중구') ||
         detail.venue.contains('함월홀') ||
         detail.venue.contains('달빛마루')) {
-      var isSoldOut = detail.isSoldOut;
-      try {
-        final statuses = await _jungguService.fetchSoldOutStatuses();
-        isSoldOut = JungguCrawlerService.isTitleSoldOut(
-          detail.title,
-          statuses,
-        );
-      } catch (e) {
-        debugPrint('Failed to enrich Junggu sold out status: $e');
-      }
-
       // Ensure price is accurate for known performances
       var price = detail.price;
       if ((price == '무료' || price.isEmpty) && detail.title.contains('긴긴밤')) {
@@ -395,9 +342,7 @@ class PerformanceRepository {
           detail.bookingLinks.isEmpty ||
           detail.bookingLinks.first.url != updatedLinks.first.url;
 
-      if (isSoldOut != detail.isSoldOut ||
-          price != detail.price ||
-          hasLinkChanged) {
+      if (price != detail.price || hasLinkChanged) {
         return PerformanceDetail(
           id: detail.id,
           title: detail.title,
@@ -411,7 +356,7 @@ class PerformanceRepository {
           price: price,
           posterUrl: detail.posterUrl,
           genre: detail.genre,
-          state: isSoldOut ? '매진' : detail.state,
+          state: detail.state,
           district: detail.district,
           bookingLinks: updatedLinks,
           detailImages: detail.detailImages,
