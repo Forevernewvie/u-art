@@ -204,29 +204,32 @@ void main() {
           ),
         ).thenAnswer((_) async => [p1, p2]);
 
+        // Wait for initial build to complete
+        await container.read(searchViewModelProvider.future);
+
         final notifier = container.read(searchViewModelProvider.notifier);
 
         // Search by title
         await notifier.search('Musical', '전체');
-        var state = await container.read(searchViewModelProvider.future);
+        var state = container.read(searchViewModelProvider).value!;
         expect(state.length, 1);
         expect(state.first.id, '1');
 
         // Search by venue name
         await notifier.search('중구', '전체');
-        state = await container.read(searchViewModelProvider.future);
+        state = container.read(searchViewModelProvider).value!;
         expect(state.length, 1);
         expect(state.first.id, '2');
 
         // Search by genre
         await notifier.search('', '연극');
-        state = await container.read(searchViewModelProvider.future);
+        state = container.read(searchViewModelProvider).value!;
         expect(state.length, 1);
         expect(state.first.id, '2');
 
         // Refresh
         await notifier.refresh();
-        state = await container.read(searchViewModelProvider.future);
+        state = container.read(searchViewModelProvider).value!;
         expect(state.length, 2);
       },
     );

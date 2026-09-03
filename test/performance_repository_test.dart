@@ -207,7 +207,7 @@ void main() {
     );
 
     test(
-      'getPerformanceDetail enriches Ginginbam price and sold out status',
+      'getPerformanceDetail enriches Ginginbam price and official booking link',
       () async {
         final rawDetail = PerformanceDetail(
           id: 'PF296392',
@@ -238,8 +238,8 @@ void main() {
 
         final enriched = await repository.getPerformanceDetail('PF296392');
         expect(enriched.price, '일반 10,000원');
-        expect(enriched.state, '매진');
-        expect(enriched.isSoldOut, isTrue);
+        expect(enriched.state, '공연예정');
+        expect(enriched.isSoldOut, isFalse);
         expect(enriched.bookingLinks, isNotEmpty);
         expect(enriched.bookingLinks.first.name, '중구문화의전당 공식 예매');
       },
@@ -257,7 +257,7 @@ void main() {
       expect(repo, isA<PerformanceRepository>());
     });
 
-    test('PerformanceRepository defaults to concrete KopisService and JungguCrawlerService', () {
+    test('PerformanceRepository defaults to concrete KopisService', () {
       final repo = PerformanceRepository(mockService);
       expect(repo, isNotNull);
     });

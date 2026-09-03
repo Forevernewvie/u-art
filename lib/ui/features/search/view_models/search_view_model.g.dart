@@ -33,7 +33,7 @@ final class SearchViewModelProvider
   SearchViewModel create() => SearchViewModel();
 }
 
-String _$searchViewModelHash() => r'a0a6c1a4d114337b71025b4311a0eec572fd1659';
+String _$searchViewModelHash() => r'6bd85752f6cfd0ca94e178d12c63ddbff99e2fb9';
 
 abstract class _$SearchViewModel extends $AsyncNotifier<List<Performance>> {
   FutureOr<List<Performance>> build();
