@@ -200,7 +200,6 @@ class PerformanceRepository {
         final kopisItem = isPNewKopis ? p : existing;
         final crawledItem = isPNewKopis ? existing : p;
 
-        final isSoldOut = kopisItem.isSoldOut || crawledItem.isSoldOut;
         final detailedVenue = crawledItem.venue.contains('(')
             ? crawledItem.venue
             : kopisItem.venue;
@@ -217,9 +216,9 @@ class PerformanceRepository {
           genre: kopisItem.genre.isNotEmpty
               ? kopisItem.genre
               : crawledItem.genre,
-          state: isSoldOut
-              ? '매진'
-              : (kopisItem.state.isNotEmpty ? kopisItem.state : '공연예정'),
+          state: kopisItem.state.isNotEmpty
+              ? kopisItem.state
+              : (crawledItem.state.isNotEmpty ? crawledItem.state : '공연예정'),
           district: kopisItem.district != '전체'
               ? kopisItem.district
               : crawledItem.district,

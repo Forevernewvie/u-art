@@ -11,9 +11,7 @@ class Performance {
   final String state;
   final String district;
 
-  bool get isSoldOut =>
-      state.contains('매진') ||
-      state.toLowerCase().contains('sold out');
+  bool get isSoldOut => false;
 
   Performance({
     required this.id,
@@ -28,12 +26,6 @@ class Performance {
   });
 
   factory Performance.fromJson(Map<String, dynamic> json) {
-    final stateStr = json['state']?.toString() ?? '';
-    final isSold =
-        json['isSoldOut'] == true ||
-        stateStr.contains('매진') ||
-        stateStr.toLowerCase().contains('sold out');
-
     return Performance(
       id: json['id'] ?? json['kopisId'] ?? '',
       title: json['title'] ?? '',
@@ -42,9 +34,7 @@ class Performance {
       venue: json['venue'] ?? '',
       posterUrl: json['posterUrl'] ?? '',
       genre: json['genre'] ?? '',
-      state: isSold
-          ? (stateStr.isNotEmpty ? stateStr : '매진')
-          : (stateStr.isNotEmpty ? stateStr : '공연예정'),
+      state: json['state']?.toString() ?? '공연예정',
       district: json['district'] ?? '전체',
     );
   }
@@ -104,9 +94,7 @@ class PerformanceDetail {
   final List<BookingLink> bookingLinks;
   final List<String> detailImages;
 
-  bool get isSoldOut =>
-      state.contains('매진') ||
-      state.toLowerCase().contains('sold out');
+  bool get isSoldOut => false;
 
   PerformanceDetail({
     required this.id,
