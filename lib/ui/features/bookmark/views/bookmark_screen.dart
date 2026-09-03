@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../view_models/bookmark_list_view_model.dart';
-import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 
 class BookmarkScreen extends ConsumerWidget {
   const BookmarkScreen({super.key});
@@ -65,8 +64,6 @@ class BookmarkScreen extends ConsumerWidget {
                               errorWidget: (context, url, error) =>
                                   const Icon(Icons.error),
                             ),
-                            if (perf.isSoldOut)
-                              const SoldOutStamp(size: StampSize.regular),
                           ],
                         ),
                       ),
