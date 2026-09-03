@@ -8,8 +8,6 @@ import 'package:u_art/ui/features/home/view_models/home_view_model.dart';
 import 'package:u_art/ui/features/search/view_models/search_view_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 void main() {
   testWidgets('HomeScreen interactions and error states', (tester) async {
@@ -231,75 +229,6 @@ void main() {
     await tester.fling(find.byType(CustomScrollView), const Offset(0, 300), 1000);
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-  });
-
-  testWidgets('HomeScreen renders SoldOutStamp for sold out performance', (tester) async {
-    final soldPerf = Performance(
-      id: 'SOLD_01',
-      title: '매진 공연',
-      startDate: '2026.09.20',
-      endDate: '2026.09.20',
-      venue: '울산문예회관',
-      posterUrl: 'invalid_url',
-      genre: '연극',
-      state: '매진',
-      district: '전체',
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          homeViewModelProvider.overrideWith(
-            () => MockHomeViewModel([soldPerf]),
-          ),
-        ],
-        child: const MaterialApp(home: HomeScreen()),
-      ),
-    );
-
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 200));
-    expect(find.byType(SoldOutStamp), findsWidgets);
-
-    final cachedImages = tester.widgetList<CachedNetworkImage>(find.byType(CachedNetworkImage));
-    for (final img in cachedImages) {
-      if (img.errorWidget != null) {
-        final err = img.errorWidget!(tester.element(find.byType(HomeScreen)), 'url', 'err');
-        expect(err, isA<Icon>());
-      }
-    }
-  });
-
-  testWidgets('SearchScreen renders SoldOutStamp for sold out performance', (tester) async {
-    final soldPerf = Performance(
-      id: 'SOLD_SEARCH',
-      title: '검색 매진 공연',
-      startDate: '2026.09.20',
-      endDate: '2026.09.20',
-      venue: '울산문예회관',
-      posterUrl: 'invalid_url',
-      genre: '연극',
-      state: '매진',
-      district: '전체',
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          searchViewModelProvider.overrideWith(
-            () => MockSearchViewModel([soldPerf]),
-          ),
-        ],
-        child: const MaterialApp(home: SearchScreen()),
-      ),
-    );
-
-    await tester.pumpAndSettle();
-    expect(find.byType(SoldOutStamp), findsOneWidget);
-
-    final searchImg = tester.widget<CachedNetworkImage>(find.byType(CachedNetworkImage).first);
-    final err = searchImg.errorWidget!(tester.element(find.byType(SearchScreen)), 'url', 'err');
-    expect(err, isA<Icon>());
   });
 }
 

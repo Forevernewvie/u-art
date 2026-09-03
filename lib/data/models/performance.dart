@@ -13,9 +13,7 @@ class Performance {
 
   bool get isSoldOut =>
       state.contains('매진') ||
-      state.toLowerCase().contains('sold out') ||
-      state == '공연완료' ||
-      state.contains('마감');
+      state.toLowerCase().contains('sold out');
 
   Performance({
     required this.id,
@@ -33,11 +31,8 @@ class Performance {
     final stateStr = json['state']?.toString() ?? '';
     final isSold =
         json['isSoldOut'] == true ||
-        json['soldOut'] == true ||
         stateStr.contains('매진') ||
-        stateStr.toLowerCase().contains('sold out') ||
-        stateStr == '공연완료' ||
-        stateStr.contains('마감');
+        stateStr.toLowerCase().contains('sold out');
 
     return Performance(
       id: json['id'] ?? json['kopisId'] ?? '',
@@ -47,13 +42,9 @@ class Performance {
       venue: json['venue'] ?? '',
       posterUrl: json['posterUrl'] ?? '',
       genre: json['genre'] ?? '',
-      state:
-          isSold &&
-              !stateStr.contains('매진') &&
-              !stateStr.contains('마감') &&
-              stateStr != '공연완료'
-          ? '매진'
-          : (stateStr.isNotEmpty ? stateStr : (isSold ? '매진' : '공연예정')),
+      state: isSold
+          ? (stateStr.isNotEmpty ? stateStr : '매진')
+          : (stateStr.isNotEmpty ? stateStr : '공연예정'),
       district: json['district'] ?? '전체',
     );
   }
@@ -115,9 +106,7 @@ class PerformanceDetail {
 
   bool get isSoldOut =>
       state.contains('매진') ||
-      state.toLowerCase().contains('sold out') ||
-      state == '공연완료' ||
-      state.contains('마감');
+      state.toLowerCase().contains('sold out');
 
   PerformanceDetail({
     required this.id,
@@ -149,13 +138,6 @@ class PerformanceDetail {
     }
 
     final stateStr = json['state']?.toString() ?? '';
-    final isSold =
-        json['isSoldOut'] == true ||
-        json['soldOut'] == true ||
-        stateStr.contains('매진') ||
-        stateStr.toLowerCase().contains('sold out') ||
-        stateStr == '공연완료' ||
-        stateStr.contains('마감');
 
     // Convert string fields safely
     return PerformanceDetail(
@@ -177,13 +159,7 @@ class PerformanceDetail {
       }(),
       posterUrl: json['posterUrl'] ?? '',
       genre: json['genre'] ?? '',
-      state:
-          isSold &&
-              !stateStr.contains('매진') &&
-              !stateStr.contains('마감') &&
-              stateStr != '공연완료'
-          ? '매진'
-          : (stateStr.isNotEmpty ? stateStr : (isSold ? '매진' : '공연예정')),
+      state: stateStr.isNotEmpty ? stateStr : '공연예정',
       district: json['district'] ?? '전체',
       bookingLinks: parsedLinks,
       detailImages:

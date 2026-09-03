@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:rxdart/rxdart.dart';
 import '../view_models/search_view_model.dart';
-import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -141,24 +140,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         ),
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Stack(
-                            children: [
-                              CachedNetworkImage(
-                                imageUrl: perf.posterUrl,
-                                width: 60,
-                                height: 80,
-                                fit: BoxFit.cover,
-                                errorWidget: (context, url, error) =>
-                                    const Icon(Icons.error),
-                              ),
-                              if (perf.isSoldOut)
-                                const Positioned.fill(
-                                  child: SoldOutStamp(
-                                    size: StampSize.compact,
-                                    showOverlay: false,
-                                  ),
-                                ),
-                            ],
+                          child: CachedNetworkImage(
+                            imageUrl: perf.posterUrl,
+                            width: 60,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.error),
                           ),
                         ),
                         title: Text(

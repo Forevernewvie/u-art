@@ -101,7 +101,7 @@ void main() {
           state: '공연완료',
           district: 'D',
         ).isSoldOut,
-        isTrue,
+        isFalse,
       );
 
       expect(
@@ -116,7 +116,7 @@ void main() {
           state: '예매마감',
           district: 'D',
         ).isSoldOut,
-        isTrue,
+        isFalse,
       );
 
       expect(

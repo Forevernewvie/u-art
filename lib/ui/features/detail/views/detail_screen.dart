@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:u_art/data/models/performance.dart';
-import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 import '../view_models/detail_view_model.dart';
 import '../../bookmark/view_models/bookmark_view_model.dart';
 
@@ -66,8 +65,6 @@ class DetailScreen extends ConsumerWidget {
                             errorWidget: (context, url, error) =>
                                 const Icon(Icons.error),
                           ),
-                          if (detail.isSoldOut)
-                            const SoldOutStamp(size: StampSize.large),
                         ],
                       ),
                     ),
@@ -290,15 +287,11 @@ class DetailScreen extends ConsumerWidget {
                     ),
                   ),
                   child: ElevatedButton.icon(
-                    onPressed: detail.isSoldOut
-                        ? null
-                        : hasBooking
+                    onPressed: hasBooking
                         ? () => _handleBooking(context, detail.bookingLinks)
                         : () => _showNoBookingDialog(context, detail),
                     icon: Icon(
-                      detail.isSoldOut
-                          ? Icons.block
-                          : hasBooking
+                      hasBooking
                           ? (detail.bookingLinks.any(
                                   (l) =>
                                       l.name.contains('안내') ||
@@ -310,9 +303,7 @@ class DetailScreen extends ConsumerWidget {
                       size: 22,
                     ),
                     label: Text(
-                      detail.isSoldOut
-                          ? '매진 (Sold Out)'
-                          : hasBooking
+                      hasBooking
                           ? (detail.bookingLinks.length > 1
                                 ? '예매처 바로가기 (${detail.bookingLinks.length}곳)'
                                 : (detail.bookingLinks.first.name.contains(
@@ -329,18 +320,10 @@ class DetailScreen extends ConsumerWidget {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: detail.isSoldOut
-                          ? Colors.grey.shade900
-                          : hasBooking
+                      backgroundColor: hasBooking
                           ? Colors.white
                           : const Color(0xFF2C2C2E),
-                      foregroundColor: detail.isSoldOut
-                          ? Colors.white54
-                          : hasBooking
-                          ? Colors.black
-                          : Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade900,
-                      disabledForegroundColor: Colors.white54,
+                      foregroundColor: hasBooking ? Colors.black : Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       elevation: 6,
                       shape: RoundedRectangleBorder(

@@ -6,7 +6,6 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../view_models/home_view_model.dart';
 import 'widgets/kopis_disclaimer.dart';
-import 'package:u_art/ui/common_widgets/sold_out_stamp.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -70,8 +69,6 @@ class HomeScreen extends ConsumerWidget {
                                     errorWidget: (context, url, error) =>
                                         const Icon(Icons.error),
                                   ),
-                                  if (perf.isSoldOut)
-                                    const SoldOutStamp(size: StampSize.regular),
                                   Positioned(
                                     bottom: 0,
                                     left: 0,
@@ -167,15 +164,6 @@ class HomeScreen extends ConsumerWidget {
                                   const Icon(Icons.broken_image),
                             ),
                           ),
-                          if (perf.isSoldOut)
-                            const Positioned(
-                              top: -4,
-                              right: -4,
-                              child: SoldOutStamp(
-                                size: StampSize.compact,
-                                showOverlay: false,
-                              ),
-                            ),
                         ],
                       ),
                       title: Text(
