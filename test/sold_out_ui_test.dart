@@ -246,7 +246,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.textContaining('지금 예매하기 (중구문화의전당 공식 예매)'),
+          find.text('지금 예매하기'),
           findsOneWidget,
         );
         expect(find.text('공연장 문의'), findsNWidgets(2));
@@ -294,7 +294,7 @@ void main() {
 
         await tester.pumpAndSettle();
         expect(
-          find.textContaining('공연장 안내 바로가기 (공식 홈페이지)'),
+          find.text('공연장 안내 바로가기'),
           findsOneWidget,
         );
 
