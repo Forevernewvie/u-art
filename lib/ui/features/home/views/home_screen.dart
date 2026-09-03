@@ -170,12 +170,7 @@ class HomeScreen extends ConsumerWidget {
                         perf.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          decoration: perf.isSoldOut
-                              ? TextDecoration.lineThrough
-                              : null,
-                          color: perf.isSoldOut ? Colors.grey : null,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
                         '${perf.venue}\n${perf.startDate} ~ ${perf.endDate}',

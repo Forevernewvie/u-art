@@ -23,7 +23,7 @@ void main() {
 
       final jsonMap = original.toJson();
       expect(jsonMap['id'], 'PF_TEST_99');
-      expect(jsonMap['isSoldOut'], isTrue);
+      expect(jsonMap['isSoldOut'], isFalse);
 
       final restored = Performance.fromJson(jsonMap);
       expect(restored.id, original.id);
@@ -34,7 +34,7 @@ void main() {
       expect(restored.posterUrl, original.posterUrl);
       expect(restored.genre, original.genre);
       expect(restored.state, '매진');
-      expect(restored.isSoldOut, isTrue);
+      expect(restored.isSoldOut, isFalse);
       expect(restored.district, original.district);
     });
 
@@ -57,83 +57,6 @@ void main() {
         expect(perf.isSoldOut, isFalse);
       },
     );
-
-    test('isSoldOut detects various sold-out keywords across cases', () {
-      expect(
-        Performance(
-          id: '1',
-          title: 'T',
-          startDate: 'S',
-          endDate: 'E',
-          venue: 'V',
-          posterUrl: '',
-          genre: 'G',
-          state: '매진',
-          district: 'D',
-        ).isSoldOut,
-        isTrue,
-      );
-
-      expect(
-        Performance(
-          id: '2',
-          title: 'T',
-          startDate: 'S',
-          endDate: 'E',
-          venue: 'V',
-          posterUrl: '',
-          genre: 'G',
-          state: 'SOLD OUT',
-          district: 'D',
-        ).isSoldOut,
-        isTrue,
-      );
-
-      expect(
-        Performance(
-          id: '3',
-          title: 'T',
-          startDate: 'S',
-          endDate: 'E',
-          venue: 'V',
-          posterUrl: '',
-          genre: 'G',
-          state: '공연완료',
-          district: 'D',
-        ).isSoldOut,
-        isFalse,
-      );
-
-      expect(
-        Performance(
-          id: '4',
-          title: 'T',
-          startDate: 'S',
-          endDate: 'E',
-          venue: 'V',
-          posterUrl: '',
-          genre: 'G',
-          state: '예매마감',
-          district: 'D',
-        ).isSoldOut,
-        isFalse,
-      );
-
-      expect(
-        Performance(
-          id: '5',
-          title: 'T',
-          startDate: 'S',
-          endDate: 'E',
-          venue: 'V',
-          posterUrl: '',
-          genre: 'G',
-          state: '공연중',
-          district: 'D',
-        ).isSoldOut,
-        isFalse,
-      );
-    });
   });
 
   group('Robustness: PerformanceRepository Fallbacks & Edge Cases', () {

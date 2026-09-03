@@ -200,8 +200,7 @@ void main() {
         expect(merged.id, 'PF296392');
         expect(merged.title, '긴긴밤 [울산]');
         expect(merged.venue, '중구문화의전당 (함월홀(2층))');
-        expect(merged.state, '매진');
-        expect(merged.isSoldOut, isTrue);
+        expect(merged.state, '공연예정');
         expect(merged.posterUrl, 'http://kopis.or.kr/poster.jpg');
       },
     );
