@@ -8,13 +8,27 @@ app.use(express.json());
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://root:examplepassword@localhost:27017/uart?authSource=admin';
 
-mongoose.connect(MONGO_URI, { 
-  useNewUrlParser: true, 
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 10000,
-})
-  .then(() => console.log('MongoDB Connected successfully'))
-  .catch(err => console.error('MongoDB connection error:', err.message));
+let lastMongoError = null;
+
+function connectMongo() {
+  console.log('Connecting to MongoDB...');
+  mongoose.connect(MONGO_URI, { 
+    useNewUrlParser: true, 
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 10000,
+  })
+    .then(() => {
+      lastMongoError = null;
+      console.log('MongoDB Connected successfully');
+    })
+    .catch(err => {
+      lastMongoError = err.message;
+      console.error('MongoDB connection error:', err.message);
+      // Auto retry after 5 seconds
+      setTimeout(connectMongo, 5000);
+    });
+}
+connectMongo();
 
 // Flexible Performance Schema
 const performanceSchema = new mongoose.Schema({
@@ -40,11 +54,14 @@ const Performance = mongoose.model('Performance', performanceSchema);
 // Health check with DB status
 app.get('/api/health', (req, res) => {
   const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  const maskedUri = MONGO_URI.replace(/:([^:@]{3,})@/, ':***@');
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
     mongo: states[mongoose.connection.readyState] || 'unknown',
-    hasMongoUri: !!process.env.MONGO_URI
+    hasMongoUri: !!process.env.MONGO_URI,
+    mongoError: lastMongoError,
+    uriPreview: maskedUri.substring(0, 30) + '...'
   });
 });
 
