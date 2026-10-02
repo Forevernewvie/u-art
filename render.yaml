@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: u-art-api
+    runtime: node
+    plan: free
+    region: singapore
+    rootDir: backend/api
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGO_URI
+        sync: false
+      - key: PORT
+        value: 3000

@@ -1,0 +1,43 @@
+name: U-Art Scheduled Crawler
+
+on:
+  schedule:
+    # Run every 6 hours (00:00, 06:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  crawl-and-sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/crawler
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/crawler/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Crawler Sync
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          KOPIS_API_KEY: ${{ secrets.KOPIS_API_KEY || '534331c08630453bbd1df50692635746' }}
+        run: |
+          python -c "from main import full_sync_job; full_sync_job()"
+
+      - name: Run Deduplication & Smart Merge
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: |
+          python deduplicate.py
