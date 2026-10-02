@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,7 @@ class SearchScreen extends ConsumerStatefulWidget {
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _searchController = TextEditingController();
   final _searchSubject = PublishSubject<String>();
+  StreamSubscription<String>? _searchSubscription;
   String _selectedGenre = '전체';
 
   final List<String> _genres = [
@@ -31,7 +33,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    _searchSubject.debounceTime(const Duration(milliseconds: 300)).listen((
+    _searchSubscription = _searchSubject.debounceTime(const Duration(milliseconds: 300)).listen((
       query,
     ) {
       ref.read(searchViewModelProvider.notifier).search(query, _selectedGenre);
@@ -40,6 +42,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   void dispose() {
+    _searchSubscription?.cancel();
     _searchController.dispose();
     _searchSubject.close();
     super.dispose();
