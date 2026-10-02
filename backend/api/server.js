@@ -11,8 +11,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://root:examplepassword@local
 mongoose.connect(MONGO_URI, { 
   useNewUrlParser: true, 
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 1000,
-  bufferCommands: false
+  serverSelectionTimeoutMS: 10000,
 })
   .then(() => console.log('MongoDB Connected successfully'))
   .catch(err => console.error('MongoDB connection error:', err.message));
@@ -38,9 +37,15 @@ const performanceSchema = new mongoose.Schema({
 
 const Performance = mongoose.model('Performance', performanceSchema);
 
-// Health check
+// Health check with DB status
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    mongo: states[mongoose.connection.readyState] || 'unknown',
+    hasMongoUri: !!process.env.MONGO_URI
+  });
 });
 
 // API Endpoint to get all performances with optional filtering
